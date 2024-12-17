@@ -1,3 +1,6 @@
-# resource "aws_s3_bucket" "bucket" { 
-#     bucket = var.bucket_name
-# }
+module "new_lambda_test" { 
+    source = "./modules/lambda-function"
+
+    function_name = "new-lambda-test"
+    stage         = var.stage
+}
