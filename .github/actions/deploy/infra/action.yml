@@ -4,12 +4,6 @@ inputs:
   environment:
     description: target environment
     required: true
-  aws-region:
-    description: target AWS regions
-    required: true
-  aws-assume-role-arn:
-    description: AWS arn role used to deploy
-    required: true
   aws-statefile-s3-bucket:
     description: s3 bucket used to store state files
     required: true
@@ -17,21 +11,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: 1.8.3
-
-    - name: Configure aws credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        role-to-assume: ${{ inputs.aws-assume-role-arn }}
-        role-session-name: Github_to_AWS_via_FederatedOIC
-        aws-region: ${{ inputs.aws-region }}
-
     - name: Terraform Init
       shell: bash
       run: |

@@ -21,13 +21,26 @@ jobs:
       run:
         working-directory: "./github"
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.3
+
+      - name: Configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::430118847006:role/GithubActionsESSantanPipeline
+          role-session-name: Github_to_AWS_via_FederatedOIC
+          aws-region: "sa-east-1"
+
       - name: deploy dev
         if: ${{ github.ref == 'refs/heads/development' }}
         uses: ./actions/deploy/infra
         with:
           environment: "development"
-          aws-region: "sa-east-1"
-          aws-assume-role-arn: arn:aws:iam::430118847006:role/GithubActionsESSantanPipeline
           aws-statefile-s3-bucket: essantana-sa-east-1-terraform-pipeline
 
       - name: deploy prod
@@ -35,6 +48,4 @@ jobs:
         uses: ./actions/deploy/infra
         with:
           environment: "production"
-          aws-region: "sa-east-1"
-          aws-assume-role-arn: arn:aws:iam::430118847006:role/GithubActionsESSantanPipeline
           aws-statefile-s3-bucket: essantana-sa-east-1-terraform-pipeline
