@@ -1,0 +1,34 @@
+name: "Deploy Development"
+
+on:
+  push:
+    branches:
+      - main
+      - development
+    paths:
+      - "infra/*"
+      - ".github/workflows/deploy-infra.yml"
+      - ".github/actions/deploy/infra/action.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-infra-development:
+    uses: ./.github/actions/deploy/infra
+    if: ${{ github.ref == 'refs/heads/development' }}
+    with:
+      environment: "development"
+      aws-region: "sa-east-1"
+      aws-assume-role-arn: arn:aws:iam::430118847006:role/GithubActionsESSantanPipeline
+      aws-statefile-s3-bucket: essantana-sa-east-1-terraform-pipeline
+
+  deploy-infra-production:
+    uses: ./.github/actions/deploy/infra
+    if: ${{ github.ref == 'refs/heads/main' }}
+    with:
+      environment: "production"
+      aws-region: "sa-east-1"
+      aws-assume-role-arn: arn:aws:iam::430118847006:role/GithubActionsESSantanPipeline
+      aws-statefile-s3-bucket: essantana-sa-east-1-terraform-pipeline
