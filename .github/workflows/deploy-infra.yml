@@ -6,7 +6,7 @@ on:
       - main
       - development
     paths:
-      - "infra/*"
+      - "infra/**"
       - ".github/workflows/deploy-infra.yml"
       - ".github/actions/deploy/infra/action.yml"
 
