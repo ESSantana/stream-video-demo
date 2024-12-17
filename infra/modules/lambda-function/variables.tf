@@ -35,6 +35,7 @@ variable architecture {
 
 variable role_arn {    
   type        = string
+  default     = ""
   description = "IAM role ARN for the lambda function"
 }
 
