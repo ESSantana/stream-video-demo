@@ -35,14 +35,14 @@ jobs:
 
       - name: deploy dev
         if: ${{ github.ref == 'refs/heads/development' }}
-        uses: ./actions/deploy/infra
+        uses: ./.github/actions/deploy/infra
         with:
           environment: "development"
           aws-statefile-s3-bucket: essantana-sa-east-1-terraform-pipeline
 
       - name: deploy prod
         if: ${{ github.ref == 'refs/heads/main' }}
-        uses: ./actions/deploy/infra
+        uses: ./.github/actions/deploy/infra
         with:
           environment: "production"
           aws-statefile-s3-bucket: essantana-sa-east-1-terraform-pipeline
