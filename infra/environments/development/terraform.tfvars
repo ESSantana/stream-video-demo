@@ -1,0 +1,1 @@
+bucket_name = "qualquer-bucket-maluco-pra-dar-certo-essantana-sa-east-1"
