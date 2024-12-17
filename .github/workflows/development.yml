@@ -15,5 +15,5 @@ jobs:
     with:
       environment: "development"
       aws-region: "sa-east-1"
-      aws-assume-role-arn: $AWS_ASSUME_ROLE_ARN
-      aws-statefile-s3-bucket: $AWS_STATEFILE_S3_BUCKET
+      aws-assume-role-arn: arn:aws:iam::430118847006:role/GithubActionsESSantanPipeline
+      aws-statefile-s3-bucket: essantana-sa-east-1-terraform-pipeline
