@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   deploy-infra:
-    uses: ./.github/workflows/terraform.yml
+    uses: ./.github/actions/infra.yml
     with:
       environment: "development"
       aws-region: "sa-east-1"
