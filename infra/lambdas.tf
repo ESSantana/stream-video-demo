@@ -3,7 +3,7 @@ module "upload_video" {
 
     function_name = "upload_video"
     stage         = var.stage
-    environment = {
+    environment_variables = {
       VIDEO_BUCKET = "teste-lambda-vars-${var.stage}"
     }
 
