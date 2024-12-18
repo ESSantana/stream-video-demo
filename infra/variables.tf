@@ -8,3 +8,8 @@ variable stage {
   type        = string
   description = "Stage (environment) of the workspace"
 }
+
+variable accountId {    
+  type        = string
+  description = "Account ID of the workspace"
+}
