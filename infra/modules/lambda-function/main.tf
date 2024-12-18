@@ -70,7 +70,7 @@ resource "aws_lambda_function" "lambda" {
 
   reserved_concurrent_executions = var.reserved_concurrent_executions
 
-  depends_on = [aws_cloudwatch_log_group.lambda_log_group.arn]
+  depends_on = [aws_cloudwatch_log_group.lambda_log_group]
 
   environment {
     variables = var.environment_variables
