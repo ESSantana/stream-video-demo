@@ -29,7 +29,7 @@ resource "aws_iam_policy" "lambda_logging_policy" {
 }
 
 resource "aws_iam_role" "iam_for_lambda" {
-  name               = "iam_for_lambda"
+  name               = "iam-for-lambda"
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 
@@ -40,7 +40,7 @@ resource "aws_iam_role_policy_attachment" "function_logging_policy_attachment" {
 
 
 resource "aws_cloudwatch_log_group" "lambda_log_group" {
-  name = "${var.function_name}-${var.stage}-${var.aws_region}"
+  name = "/aws/lambda/${var.function_name}-${var.stage}-${var.aws_region}"
 
   # set one week for all lambda log groups 
   retention_in_days = 7 
