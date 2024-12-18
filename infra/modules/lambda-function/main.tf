@@ -32,7 +32,7 @@ resource "aws_lambda_function" "lambda" {
   handler       = var.handler
   runtime       = var.runtime
   memory_size   = var.memory_size
-  role          = var.role_arn == "" ? aws_iam_role.iam_for_lambda.arn : var.role_arn
+  role          = aws_iam_role.iam_for_lambda.arn
 
   reserved_concurrent_executions = var.reserved_concurrent_executions
 

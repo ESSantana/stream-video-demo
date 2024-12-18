@@ -9,8 +9,6 @@ terraform {
     archive = {
       source = "hashicorp/archive"
       version = "2.7.0"
-    }
-     
+    }  
   }
-
 }

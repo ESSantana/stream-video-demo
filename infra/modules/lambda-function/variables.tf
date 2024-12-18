@@ -33,12 +33,6 @@ variable architecture {
   description = "Lambda function architecture"
 }
 
-variable role_arn {    
-  type        = string
-  default     = ""
-  description = "IAM role ARN for the lambda function"
-}
-
 variable memory_size {    
   type        = number
   default     = 128
