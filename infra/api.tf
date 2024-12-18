@@ -31,6 +31,14 @@ resource "aws_api_gateway_integration" "upload_video_integration" {
   uri                     = module.upload_video.lambda_invoke_arn
 }
 
+resource "aws_lambda_permission" "upload_video_lambda_permission" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = module.upload_video.lambda_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn = "arn:aws:execute-api:${var.myregion}:${var.accountId}:${aws_api_gateway_rest_api.stream_video_api.id}/*/${aws_api_gateway_method.upload_video_method.http_method}${aws_api_gateway_resource.upload_video_resource.path}"
+}
+
 resource "aws_api_gateway_deployment" "upload_video_deployment" {
   rest_api_id = aws_api_gateway_rest_api.stream_video_api.id
 
