@@ -39,6 +39,12 @@ variable memory_size {
   description = "Lambda function memory size in megabytes"
 }
 
+variable timeout {    
+  type        = number
+  default     = 180
+  description = "Lambda function timeout in seconds"
+}
+
 variable environment_variables {    
   type        = map(string)
   default     = {}

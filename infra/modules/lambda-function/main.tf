@@ -11,9 +11,41 @@ data "aws_iam_policy_document" "assume_role" {
   }
 }
 
+resource "aws_iam_policy" "lambda_logging_policy" {
+  name   = "lambda-logging-policy"
+  policy = jsonencode({
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        Action: [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ],
+        Effect: "Allow",
+        Resource: aws_cloudwatch_log_group.lambda_log_group.arn
+      }
+    ]
+  })
+}
+
 resource "aws_iam_role" "iam_for_lambda" {
   name               = "iam_for_lambda"
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
+}
+
+resource "aws_iam_role_policy_attachment" "function_logging_policy_attachment" {
+  role = aws_iam_role.iam_for_lambda.id
+  policy_arn = aws_iam_policy.lambda_logging_policy.arn
+}
+
+
+resource "aws_cloudwatch_log_group" "lambda_log_group" {
+  name = "${var.function_name}-${var.stage}-${var.aws_region}"
+
+  # set one week for all lambda log groups 
+  retention_in_days = 7 
+  
+  tags = var.tags
 }
 
 data "archive_file" "dummy_code" {
@@ -32,9 +64,13 @@ resource "aws_lambda_function" "lambda" {
   handler       = var.handler
   runtime       = var.runtime
   memory_size   = var.memory_size
+  timeout       = var.timeout
+
   role          = aws_iam_role.iam_for_lambda.arn
 
   reserved_concurrent_executions = var.reserved_concurrent_executions
+
+  depends_on = [aws_cloudwatch_log_group.lambda_log_group.arn]
 
   environment {
     variables = var.environment_variables
