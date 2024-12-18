@@ -24,7 +24,7 @@ resource "aws_api_gateway_method" "upload_video_method" {
 
 resource "aws_api_gateway_integration" "upload_video_integration" {
   http_method             = aws_api_gateway_method.upload_video_method.http_method
-  resource_id             = aws_api_gateway_resource.upload_video_method.id
+  resource_id             = aws_api_gateway_resource.upload_video_resource.id
   rest_api_id             = aws_api_gateway_rest_api.stream_video_api.id
   type                    = "AWS_PROXY"
   integration_http_method = "POST"
