@@ -1,4 +1,4 @@
-module "stream-video-api" { 
+module "stream_video_api" { 
     source = "./modules/lambda-function"
 
     function_name = "stream-video-api"
@@ -23,7 +23,7 @@ data "aws_iam_policy_document" "stream_video_policy_document" {
 
 resource "aws_iam_role_policy" "stream_video_role_policy" {
   name    = "stream-video-role-policy"
-  role    = module.stream-video-api.lambda_role_id
+  role    = module.stream_video_api.lambda_role_id
   policy  = data.aws_iam_policy_document.stream_video_policy_document.json
 }
 

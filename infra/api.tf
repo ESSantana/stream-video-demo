@@ -1,6 +1,6 @@
 
 resource "aws_api_gateway_rest_api" "stream_video_api" {
-  name = "stream-video-api-${var.stage}"
+  name = "stream_video_api-${var.stage}"
 }
 
 resource "aws_api_gateway_resource" "stream_video_resource" {
@@ -22,13 +22,13 @@ resource "aws_api_gateway_integration" "stream_video_integration" {
   rest_api_id             = aws_api_gateway_rest_api.stream_video_api.id
   type                    = "AWS_PROXY"
   integration_http_method = "POST"
-  uri                     = module.stream-video-api.lambda_invoke_arn
+  uri                     = module.stream_video_api.lambda_invoke_arn
 }
 
 resource "aws_lambda_permission" "stream_video_lambda_permission" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
-  function_name = module.stream-video-api.lambda_name
+  function_name = module.stream_video_api.lambda_name
   principal     = "apigateway.amazonaws.com"
   source_arn = "arn:aws:execute-api:${var.aws_region}:${var.accountId}:${aws_api_gateway_rest_api.stream_video_api.id}/*/${aws_api_gateway_method.stream_video_method.http_method}${aws_api_gateway_resource.stream_video_resource.path}"
 }

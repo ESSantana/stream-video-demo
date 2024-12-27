@@ -25,7 +25,7 @@ func init() {
 		response.Write([]byte("pong"))
 	})
 
-	router.Get("/upload", videoUploader.Process)
+	router.Post("/upload", videoUploader.Process)
 
 	chiLambda = chiadapter.New(router)
 }
