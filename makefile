@@ -10,7 +10,7 @@ build:
 	${GO_COMPILE} -o bin/api/main cmd/serverless/api/main.go
 	chmod +x bin/api/main
 	mv bin/api/main bin/api/bootstrap
-	cd bin/api/ && zip bootstrap.zip bootstrap
+	cd bin/api/ && zip api.zip bootstrap
 
 clean:
 	rm -rf bin/
