@@ -3,7 +3,7 @@ module "stream_video_api" {
 
     function_name = "stream-video-api"
     stage         = var.stage
-    handler       = "bin/api/boostrap" 
+    handler       = "bin/api/bootstrap" 
     environment_variables = {
       VIDEO_BUCKET = "teste-lambda-vars-${var.stage}"
     }

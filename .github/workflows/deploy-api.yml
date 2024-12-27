@@ -50,7 +50,7 @@ jobs:
         run: |
           aws lambda update-function-code \
              --function-name "stream-video-api-development-sa-east-1" \
-             --zip-file "fileb://bin/api/api.zip"
+             --zip-file fileb://bin/api/api.zip
 
       - name: Update Lambda Code
         if: ${{ github.ref == 'refs/heads/main' }}
@@ -58,6 +58,6 @@ jobs:
           ls && \
           aws lambda update-function-code \
              --function-name "stream-video-api-production-sa-east-1" \
-             --zip-file "fileb://bin/api/api.zip"
+             --zip-file fileb://bin/api/api.zip
 
              
