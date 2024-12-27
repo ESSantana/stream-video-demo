@@ -4,8 +4,7 @@ GO_COMPILE := env GOARCH=arm64 GOOS=linux go build -ldflags="-s -w"
 
 build:
 	export GO111MODULE=on
-	export CGO_ENABLE=0
-	export CC=gcc
+	export CGO_ENABLE=1
 
 	${GO_COMPILE} -o bin/api/main cmd/serverless/api/main.go
 	chmod +x bin/api/main
