@@ -49,12 +49,12 @@ jobs:
         if: ${{ github.ref == 'refs/heads/development' }}
         run: |
           aws lambda update-function-code \
-             --function-name "stream-video-api-development" \
+             --function-name "stream-video-api-development-sa-east-1" \
              --zip-file "fileb://bin/api/bootstrap.zip"
 
       - name: Update Lambda Code
         if: ${{ github.ref == 'refs/heads/main' }}
         run: |
           aws lambda update-function-code \
-             --function-name "stream-video-api-production" \
+             --function-name "stream-video-api-production-sa-east-1" \
              --zip-file "fileb://bin/api/bootstrap.zip"
