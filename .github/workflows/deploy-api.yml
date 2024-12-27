@@ -50,11 +50,11 @@ jobs:
         run: |
           aws lambda update-function-code \
              --function-name "stream-video-api-development" \
-             --zip-file "bin/api/bootstrap.zip"
+             --zip-file "fileb://bin/api/bootstrap.zip"
 
       - name: Update Lambda Code
         if: ${{ github.ref == 'refs/heads/main' }}
         run: |
           aws lambda update-function-code \
              --function-name "stream-video-api-production" \
-             --zip-file "bin/api/bootstrap.zip"
+             --zip-file "fileb://bin/api/bootstrap.zip"
