@@ -27,7 +27,7 @@ variable runtime {
   description = "Lambda function runtime"
 }
 
-variable architecture {    
+variable architectures {    
   type        = set(string)
   default     = ["arm64"]
   description = "Lambda function architecture"
