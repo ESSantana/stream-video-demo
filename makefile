@@ -7,17 +7,10 @@ build:
 	export CGO_ENABLE=0
 	export CC=gcc
 
-	${GO_COMPILE} -o bin/video-processor/main cmd/serverless/video-processor/main.go
-	chmod +x bin/video-processor/main
-	mv bin/video-processor/main bin/video-processor/bootstrap
-	cd bin/video-processor/ && powershell Compress-Archive bootstrap video-processor.zip 
-
-	${GO_COMPILE} -o bin/video-upload/main cmd/serverless/video-upload/main.go
-	chmod +x bin/video-upload/main
-	mv bin/video-upload/main bin/video-upload/bootstrap
-	cd bin/video-upload/ && powershell Compress-Archive bootstrap video-upload.zip 
+	${GO_COMPILE} -o bin/api/main cmd/serverless/api/main.go
+	chmod +x bin/api/main
+	mv bin/api/main bin/api/bootstrap
+	cd bin/api/ && zip bootstrap.zip bootstrap
 
 clean:
 	rm -rf bin/
-
-deploy: build clean
