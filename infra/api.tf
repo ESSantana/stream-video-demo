@@ -28,7 +28,7 @@ resource "aws_api_gateway_integration" "stream_video_integration" {
 resource "aws_lambda_permission" "stream_video_lambda_permission" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
-  function_name = module.stream_video.lambda_name
+  function_name = module.stream-video-api.lambda_name
   principal     = "apigateway.amazonaws.com"
   source_arn = "arn:aws:execute-api:${var.aws_region}:${var.accountId}:${aws_api_gateway_rest_api.stream_video_api.id}/*/${aws_api_gateway_method.stream_video_method.http_method}${aws_api_gateway_resource.stream_video_resource.path}"
 }
