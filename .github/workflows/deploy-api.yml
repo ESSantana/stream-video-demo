@@ -58,3 +58,5 @@ jobs:
           aws lambda update-function-code \
              --function-name "stream-video-api-production-sa-east-1" \
              --zip-file "fileb://bin/api/bootstrap.zip"
+
+             
