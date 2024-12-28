@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -50,21 +51,22 @@ func (v *VideoUploader) Process(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = v.s3Client.PutObject(&s3.PutObjectInput{
-		Body:        bytes.NewReader(data),
-		Bucket:      aws.String("streaming-test-essantana"),
-		Key:         aws.String(videoHeader.Filename),
-		ContentType: aws.String("video/mp4"),
+	req, _ := v.s3Client.PutObjectRequest(
+		&s3.PutObjectInput{
+			Bucket: aws.String("streaming-test-essantana"),
+			Key:    aws.String("videozinho"),
+			Body:   strings.NewReader("EXPECTED CONTENTS"),
+		},
+	)
 
-	})
-
+	url, err := req.Presign(time.Minute * 15)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Video uploaded successfully"))
+	w.Write([]byte(url))
 
 	// err = os.MkdirAll(tempDir, os.ModePerm)
 	// if err != nil {
