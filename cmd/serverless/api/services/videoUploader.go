@@ -4,14 +4,20 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3"
 	// "github.com/google/uuid"
 )
 
 type VideoUploader struct {
+	s3Client *s3.S3
 }
 
-func NewVideoUploader() *VideoUploader {
-	return &VideoUploader{}
+func NewVideoUploader(s3Client *s3.S3) *VideoUploader {
+	return &VideoUploader{
+		s3Client: s3Client,
+	}
 }
 
 func (v *VideoUploader) Process(w http.ResponseWriter, r *http.Request) {
@@ -40,6 +46,17 @@ func (v *VideoUploader) Process(w http.ResponseWriter, r *http.Request) {
 
 	if len(data) < 1 {
 		http.Error(w, "Error at upload video", http.StatusBadRequest)
+		return
+	}
+
+	_, err = v.s3Client.PutObject(&s3.PutObjectInput{
+		Body:        videoFile,
+		Bucket:      aws.String("streaming-test-essantana"),
+		ContentType: aws.String("video/mp4"),
+	})
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
