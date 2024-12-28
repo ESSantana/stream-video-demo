@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -50,11 +51,11 @@ func (v *VideoUploader) Process(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err = v.s3Client.PutObject(&s3.PutObjectInput{
-		Body:        videoFile,
+		Body:        bytes.NewReader(data),
 		Bucket:      aws.String("streaming-test-essantana"),
 		Key:         aws.String(videoHeader.Filename),
 		ContentType: aws.String("video/mp4"),
-		
+
 	})
 
 	if err != nil {
