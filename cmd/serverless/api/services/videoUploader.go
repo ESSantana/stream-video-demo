@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -55,7 +54,7 @@ func (v *VideoUploader) Process(w http.ResponseWriter, r *http.Request) {
 		&s3.PutObjectInput{
 			Bucket: aws.String("streaming-test-essantana"),
 			Key:    aws.String(videoHeader.Filename),
-			Body:   strings.NewReader("EXPECTED CONTENTS"),
+			ContentType: aws.String(videoHeader.Header.Get("Content-Type")),
 		},
 	)
 
@@ -81,4 +80,3 @@ func (v *VideoUploader) Process(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 }
-
