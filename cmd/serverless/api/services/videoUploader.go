@@ -38,7 +38,7 @@ func (v *VideoUploader) Process(w http.ResponseWriter, r *http.Request) {
 	}
 	defer videoFile.Close()
 
-	fmt.Printf("File Name: %s, Size: %v", videoHeader.Filename, videoHeader.Size)
+	fmt.Printf("File Name: %s, Size: %v, Headers: %+v\n ", videoHeader.Filename, videoHeader.Size, videoHeader.Header)
 
 	data, err := io.ReadAll(videoFile)
 	if err != nil {
@@ -54,7 +54,7 @@ func (v *VideoUploader) Process(w http.ResponseWriter, r *http.Request) {
 	req, _ := v.s3Client.PutObjectRequest(
 		&s3.PutObjectInput{
 			Bucket: aws.String("streaming-test-essantana"),
-			Key:    aws.String("videozinho"),
+			Key:    aws.String(videoHeader.Filename),
 			Body:   strings.NewReader("EXPECTED CONTENTS"),
 		},
 	)
@@ -81,3 +81,4 @@ func (v *VideoUploader) Process(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 }
+
