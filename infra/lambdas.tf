@@ -19,6 +19,12 @@ data "aws_iam_policy_document" "stream_video_policy_document" {
     actions   = ["s3:*"]
     resources = ["*"]
   }
+
+  statement {
+    effect    = "Allow"
+    actions   = ["logs:*"]
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_role_policy" "stream_video_role_policy" {
