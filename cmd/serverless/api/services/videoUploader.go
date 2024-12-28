@@ -54,6 +54,7 @@ func (v *VideoUploader) Process(w http.ResponseWriter, r *http.Request) {
 		Bucket:      aws.String("streaming-test-essantana"),
 		Key:         aws.String(videoHeader.Filename),
 		ContentType: aws.String("video/mp4"),
+		
 	})
 
 	if err != nil {

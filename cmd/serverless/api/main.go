@@ -25,7 +25,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	s3Client := s3.New(session, aws.NewConfig().WithRegion("us-east-1"))
+	s3Client := s3.New(session, aws.NewConfig().WithRegion("sa-east-1"))
 
 	videoUploader := handlers.NewVideoUploader(s3Client)
 
