@@ -78,7 +78,7 @@ resource "aws_lambda_permission" "allow_bucket" {
 }
 
 resource "aws_s3_bucket_notification" "new_video_upload_notification" {
-  bucket = aws_s3_bucket.bucket.id
+  bucket = aws_s3_bucket.video_bucket.id
 
   lambda_function {
     lambda_function_arn = module.process_video_job.lambda_arn
