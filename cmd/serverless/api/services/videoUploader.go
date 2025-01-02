@@ -1,15 +1,19 @@
 package handlers
 
 import (
-	"fmt"
+	"encoding/json"
 	"io"
 	"net/http"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
-	// "github.com/google/uuid"
 )
+
+type VideoData struct {
+	Filename  string `json:"filename"`
+	Extension string `json:"extension"`
+}
 
 type VideoUploader struct {
 	s3Client *s3.S3
@@ -22,39 +26,24 @@ func NewVideoUploader(s3Client *s3.S3) *VideoUploader {
 }
 
 func (v *VideoUploader) Process(w http.ResponseWriter, r *http.Request) {
-	// fileID := uuid.New().String()
-
-	err := r.ParseMultipartForm(20 << 20)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	videoFile, videoHeader, err := r.FormFile("upload_video")
+	var videoData VideoData
+	err = json.Unmarshal(body, &videoData)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	defer videoFile.Close()
-
-	fmt.Printf("File Name: %s, Size: %v, Headers: %+v\n ", videoHeader.Filename, videoHeader.Size, videoHeader.Header)
-
-	data, err := io.ReadAll(videoFile)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if len(data) < 1 {
-		http.Error(w, "Error at upload video", http.StatusBadRequest)
 		return
 	}
 
 	req, _ := v.s3Client.PutObjectRequest(
 		&s3.PutObjectInput{
-			Bucket: aws.String("streaming-test-essantana"),
-			Key:    aws.String(videoHeader.Filename),
-			ContentType: aws.String(videoHeader.Header.Get("Content-Type")),
+			Bucket:      aws.String("streaming-test-essantana"),
+			Key:         aws.String(videoData.Filename),
+			ContentType: aws.String(videoData.Extension),
 		},
 	)
 
@@ -66,17 +55,4 @@ func (v *VideoUploader) Process(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(url))
-
-	// err = os.MkdirAll(tempDir, os.ModePerm)
-	// if err != nil {
-	// 	http.Error(w, err.Error(), http.StatusBadRequest)
-	// 	return
-	// }
-
-	// tempFilePath := fmt.Sprintf("%s/%s.mp4", tempDir, fileID)
-	// err = os.WriteFile(tempFilePath, data, os.ModeAppend)
-	// if err != nil {
-	// 	http.Error(w, err.Error(), http.StatusBadRequest)
-	// 	return
-	// }
 }
