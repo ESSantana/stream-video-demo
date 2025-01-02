@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -41,7 +42,7 @@ func (v *VideoUploader) Process(w http.ResponseWriter, r *http.Request) {
 
 	req, _ := v.s3Client.PutObjectRequest(
 		&s3.PutObjectInput{
-			Bucket:      aws.String("streaming-test-essantana"),
+			Bucket:      aws.String(os.Getenv("VIDEO_BUCKET")),
 			Key:         aws.String(videoData.Filename),
 			ContentType: aws.String(videoData.ContentType),
 		},
