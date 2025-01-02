@@ -12,7 +12,6 @@ import (
 
 type VideoData struct {
 	Filename    string `json:"filename"`
-	Extension   string `json:"extension"`
 	ContentType string `json:"content_type"`
 }
 
@@ -43,7 +42,7 @@ func (v *VideoUploader) Process(w http.ResponseWriter, r *http.Request) {
 	req, _ := v.s3Client.PutObjectRequest(
 		&s3.PutObjectInput{
 			Bucket:      aws.String("streaming-test-essantana"),
-			Key:         aws.String(videoData.Filename + "." + videoData.Extension),
+			Key:         aws.String(videoData.Filename),
 			ContentType: aws.String(videoData.ContentType),
 		},
 	)
