@@ -48,3 +48,4 @@ func Handler(ctx context.Context, event events.S3Event) error {
 
 	return nil
 }
+
