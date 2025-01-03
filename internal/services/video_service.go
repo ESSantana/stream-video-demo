@@ -60,7 +60,12 @@ func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, vide
 	}
 
 	tempFilePath := os.TempDir() + "/" + videoKey
-	err = os.WriteFile(tempFilePath, videoData, 0666)
+	f, err := os.Create(tempFilePath)
+	if err != nil {
+		return err
+	}
+
+	_, err = f.Write(videoData)
 	if err != nil {
 		return err
 	}

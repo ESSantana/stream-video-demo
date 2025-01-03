@@ -6,6 +6,7 @@ on:
       - main
       - development
     paths:
+      - "internal/**"
       - "cmd/serverless/jobs/video-processor/**"
       - ".github/workflows/deploy-video-processor.yml"
 
@@ -58,5 +59,3 @@ jobs:
           aws lambda update-function-code \
              --function-name "process-video-production-sa-east-1" \
              --zip-file fileb://bin/jobs/process-video/process-video.zip
-
-             
