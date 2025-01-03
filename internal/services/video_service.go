@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -50,24 +51,24 @@ func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, vide
 		Key:    aws.String(videoKey),
 	})
 	if err != nil {
-		return err
+		return errors.New("read from s3: " + err.Error())
 	}
 	defer videoObject.Body.Close()
 
 	videoData, err := io.ReadAll(videoObject.Body)
 	if err != nil {
-		return err
+		return errors.New("read object data: " + err.Error())
 	}
 
 	tempFilePath := os.TempDir() + "/" + videoKey
 	f, err := os.Create(tempFilePath)
 	if err != nil {
-		return err
+		return errors.New("create tmp file: " + err.Error())
 	}
 
 	_, err = f.Write(videoData)
 	if err != nil {
-		return err
+		return errors.New("write to tmp file: " + err.Error())
 	}
 
 	videoKeyParts := strings.Split(videoKey, "/")
@@ -89,13 +90,13 @@ func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, vide
 
 	entries, err := os.ReadDir(os.TempDir() + "/processed/" + videoName)
 	if err != nil {
-		return err
+		return errors.New("list processed files: " + err.Error())
 	}
 
 	for _, entry := range entries {
 		data, err := os.OpenFile(entry.Name(), os.O_RDWR, 0666)
 		if err != nil {
-			return err
+			return errors.New("open entry file: " + err.Error())
 		}
 
 		_, err = s.s3Client.PutObject(&s3.PutObjectInput{
@@ -104,7 +105,7 @@ func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, vide
 			Body:   data,
 		})
 		if err != nil {
-			return err
+			return errors.New("save processed to s3: " + err.Error())
 		}
 
 		err = os.Remove(entry.Name())
