@@ -59,11 +59,14 @@ func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, vide
 		return err
 	}
 
+	videoKeyParts := strings.Split(videoKey, "/")
+	videoName := strings.ReplaceAll(videoKeyParts[len(videoKeyParts)-1], ".mp4", "")
+
 	err = os.MkdirAll(os.TempDir()+"/raw", os.ModePerm)
 	if err != nil {
 		return err
 	}
-	err = os.MkdirAll(os.TempDir()+"/processed", os.ModePerm)
+	err = os.MkdirAll(os.TempDir()+"/processed/"+videoName, os.ModePerm)
 	if err != nil {
 		return err
 	}
@@ -73,9 +76,6 @@ func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, vide
 	if err != nil {
 		return err
 	}
-
-	videoKeyParts := strings.Split(videoKey, "/")
-	videoName := strings.ReplaceAll(videoKeyParts[len(videoKeyParts)-1], ".mp4", "")
 
 	manifestFilePath := os.TempDir() + "/processed/" + videoName + "/index.m3u8"
 	segmentFilePath := os.TempDir() + "/processed/" + videoName + "/segment%03d.ts"
