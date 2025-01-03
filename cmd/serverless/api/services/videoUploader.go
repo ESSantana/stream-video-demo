@@ -42,8 +42,8 @@ func (v *VideoUploader) Process(w http.ResponseWriter, r *http.Request) {
 
 	req, _ := v.s3Client.PutObjectRequest(
 		&s3.PutObjectInput{
-			Bucket:      aws.String(os.Getenv("VIDEO_BUCKET")),
-			Key:         aws.String(videoData.Filename),
+			Bucket: aws.String(os.Getenv("VIDEO_BUCKET")),
+			Key:    aws.String("raw/" + videoData.Filename),
 			ContentType: aws.String(videoData.ContentType),
 		},
 	)
