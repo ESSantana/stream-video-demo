@@ -1,0 +1,62 @@
+name: "Deploy Video Processor Job"
+
+on:
+  push:
+    branches:
+      - main
+      - development
+    paths:
+      - "cmd/serverless/jobs/video-processor/**"
+      - ".github/workflows/deploy-video-processor.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-infra:
+    runs-on: "ubuntu-latest"
+    defaults:
+      run:
+        working-directory: ./
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.23.2
+          cache-dependency-path: subdir/go.sum
+
+      - name: Install dependencies
+        run: go get .
+
+      - name: Build
+        run: make build
+
+      # - name: Test
+      #   run: go test
+
+      - name: Configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::430118847006:role/GithubActionsESSantanPipeline
+          role-session-name: Github_to_AWS_via_FederatedOIC
+          aws-region: "sa-east-1"
+
+      - name: Update Lambda Code
+        if: ${{ github.ref == 'refs/heads/development' }}
+        run: |
+          aws lambda update-function-code \
+             --function-name "process-video-development-sa-east-1" \
+             --zip-file fileb://bin/jobs/process-video/process-video.zip
+
+      - name: Update Lambda Code
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          aws lambda update-function-code \
+             --function-name "process-video-production-sa-east-1" \
+             --zip-file fileb://bin/jobs/process-video/process-video.zip
+
+             
