@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -51,31 +50,26 @@ func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, vide
 		Key:    aws.String(videoKey),
 	})
 	if err != nil {
-		return errors.New("read from s3: " + err.Error())
+		return err
 	}
 	defer videoObject.Body.Close()
 
 	videoData, err := io.ReadAll(videoObject.Body)
 	if err != nil {
-		return errors.New("read object data: " + err.Error())
+		return err
 	}
 
-	tempFilePath := os.TempDir() + "/" + videoKey
-	f, err := os.Create(tempFilePath)
+	tempFilePath := "~/" + os.TempDir() + "/" + videoKey
+	err = os.WriteFile(tempFilePath, videoData, 0666)
 	if err != nil {
-		return errors.New("create tmp file: " + err.Error())
-	}
-
-	_, err = f.Write(videoData)
-	if err != nil {
-		return errors.New("write to tmp file: " + err.Error())
+		return err
 	}
 
 	videoKeyParts := strings.Split(videoKey, "/")
 	videoName := strings.ReplaceAll(videoKeyParts[len(videoKeyParts)-1], ".mp4", "")
 
-	manifestFilePath := os.TempDir() + "/processed/" + videoName + "/index.m3u8"
-	segmentFilePath := os.TempDir() + "/processed/" + videoName + "/segment%03d.ts"
+	manifestFilePath := "~/" + os.TempDir() + "/processed/" + videoName + "/index.m3u8"
+	segmentFilePath := "~/" + os.TempDir() + "/processed/" + videoName + "/segment%03d.ts"
 
 	_ = ffmpeg.Input(tempFilePath).Output(manifestFilePath, ffmpeg.KwArgs{
 		"vcodec":               "libx264",
@@ -88,15 +82,15 @@ func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, vide
 		"hls_list_size":        0,
 	}).ErrorToStdOut().Run()
 
-	entries, err := os.ReadDir(os.TempDir() + "/processed/" + videoName)
+	entries, err := os.ReadDir("~/" + os.TempDir() + "/processed/" + videoName)
 	if err != nil {
-		return errors.New("list processed files: " + err.Error())
+		return err
 	}
 
 	for _, entry := range entries {
 		data, err := os.OpenFile(entry.Name(), os.O_RDWR, 0666)
 		if err != nil {
-			return errors.New("open entry file: " + err.Error())
+			return err
 		}
 
 		_, err = s.s3Client.PutObject(&s3.PutObjectInput{
@@ -105,7 +99,7 @@ func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, vide
 			Body:   data,
 		})
 		if err != nil {
-			return errors.New("save processed to s3: " + err.Error())
+			return err
 		}
 
 		err = os.Remove(entry.Name())
