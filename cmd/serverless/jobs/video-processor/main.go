@@ -34,15 +34,15 @@ func main() {
 func Handler(ctx context.Context, event events.S3Event) error {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 
-	log.Print("hello world")
+	log.Info().Msg("hello world")
 
 	out, err := json.Marshal(event)
 	if err != nil {
-		log.Printf("Error marshalling event: %s\n", err.Error())
+		log.Info().Msgf("Error marshalling event: %s\n", err.Error())
 		return nil
 	}
 
-	log.Printf("Processing event: %s\n", out)
+	log.Info().Msgf("Processing event: %s\n", out)
 
 	return nil
 }
