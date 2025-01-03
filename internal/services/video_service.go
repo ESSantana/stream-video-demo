@@ -59,7 +59,16 @@ func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, vide
 		return err
 	}
 
-	tempFilePath := "~/" + os.TempDir() + "/" + videoKey
+	err = os.MkdirAll(os.TempDir()+"/raw", os.ModePerm)
+	if err != nil {
+		return err
+	}
+	err = os.MkdirAll(os.TempDir()+"/processed", os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	tempFilePath := os.TempDir() + "/" + videoKey
 	err = os.WriteFile(tempFilePath, videoData, 0666)
 	if err != nil {
 		return err
@@ -68,8 +77,8 @@ func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, vide
 	videoKeyParts := strings.Split(videoKey, "/")
 	videoName := strings.ReplaceAll(videoKeyParts[len(videoKeyParts)-1], ".mp4", "")
 
-	manifestFilePath := "~/" + os.TempDir() + "/processed/" + videoName + "/index.m3u8"
-	segmentFilePath := "~/" + os.TempDir() + "/processed/" + videoName + "/segment%03d.ts"
+	manifestFilePath := os.TempDir() + "/processed/" + videoName + "/index.m3u8"
+	segmentFilePath := os.TempDir() + "/processed/" + videoName + "/segment%03d.ts"
 
 	_ = ffmpeg.Input(tempFilePath).Output(manifestFilePath, ffmpeg.KwArgs{
 		"vcodec":               "libx264",
@@ -82,7 +91,7 @@ func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, vide
 		"hls_list_size":        0,
 	}).ErrorToStdOut().Run()
 
-	entries, err := os.ReadDir("~/" + os.TempDir() + "/processed/" + videoName)
+	entries, err := os.ReadDir(os.TempDir() + "/processed/" + videoName)
 	if err != nil {
 		return err
 	}
