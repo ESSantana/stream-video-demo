@@ -16,11 +16,6 @@ resource "aws_iam_policy" "lambda_logging_policy" {
   policy = jsonencode({
     "Version": "2012-10-17",
     "Statement": [
-      # {
-      #   Action: ["logs:*"],
-      #   Effect: "Allow",
-      #   Resource: aws_cloudwatch_log_group.lambda_log_group.arn
-      # },
       {
         Action : [
           "logs:CreateLogStream",

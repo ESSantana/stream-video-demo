@@ -3,20 +3,110 @@ package services
 import (
 	"context"
 	"fmt"
-	"strconv"
+	"io"
+	"os"
+	"strings"
+	"time"
 
 	"github.com/ESSantana/streaming-test/internal/services/interfaces"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3"
+
+	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
 
 type VideoService struct {
+	s3Client *s3.S3
 }
 
-func NewVideoService() interfaces.VideoService {
-	return &VideoService{}
+func NewVideoService(s3Client *s3.S3) interfaces.VideoService {
+	return &VideoService{
+		s3Client: s3Client,
+	}
 }
 
-func (s *VideoService) UploadVideo(ctx context.Context, filename string, extension string, data []byte) (err error) {
-	fmt.Println(filename + extension)
-	fmt.Println("Video length: " + strconv.Itoa(len(data)))
+func (s *VideoService) CreateS3PresignedPutURL(ctx context.Context, bucket, filename, contentType string) (presignedURL string, err error) {
+	objectKey := "raw/" + filename
+
+	req, _ := s.s3Client.PutObjectRequest(
+		&s3.PutObjectInput{
+			Bucket:      aws.String(bucket),
+			Key:         aws.String(objectKey),
+			ContentType: aws.String(contentType),
+		},
+	)
+
+	presignedURL, err = req.Presign(time.Minute * 15)
+	if err != nil {
+		return "", err
+	}
+
+	return presignedURL, nil
+}
+
+func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, videoKey string, options interface{}) (err error) {
+	videoObject, err := s.s3Client.GetObject(&s3.GetObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(videoKey),
+	})
+	if err != nil {
+		return err
+	}
+	defer videoObject.Body.Close()
+
+	videoData, err := io.ReadAll(videoObject.Body)
+	if err != nil {
+		return err
+	}
+
+	tempFilePath := "/tmp/" + videoKey
+	err = os.WriteFile(tempFilePath, videoData, 0666)
+	if err != nil {
+		return err
+	}
+
+	videoKeyParts := strings.Split(videoKey, "/")
+	videoName := strings.ReplaceAll(videoKeyParts[len(videoKeyParts)-1], ".mp4", "")
+
+	manifestFilePath := "/tmp/processed/" + videoName + "/index.m3u8"
+	segmentFilePath := "/tmp/processed/" + videoName + "/segment%03d.ts"
+
+	_ = ffmpeg.Input(tempFilePath).Output(manifestFilePath, ffmpeg.KwArgs{
+		"vcodec":               "libx264",
+		"acodec":               "acc",
+		"codec":                "copy",
+		"start_number":         0,
+		"hls_time":             10,
+		"hls_playlist_type":    "vod",
+		"hls_segment_filename": segmentFilePath,
+		"hls_list_size":        0,
+	}).ErrorToStdOut().Run()
+
+	entries, err := os.ReadDir("/tmp/processed/" + videoName)
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		data, err := os.OpenFile(entry.Name(), os.O_RDWR, 0666)
+		if err != nil {
+			return err
+		}
+
+		_, err = s.s3Client.PutObject(&s3.PutObjectInput{
+			Bucket: aws.String(bucket),
+			Key:    aws.String("processed/" + videoName + "/" + entry.Name()),
+			Body:   data,
+		})
+		if err != nil {
+			return err
+		}
+
+		err = os.Remove(entry.Name())
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	}
+
 	return nil
 }

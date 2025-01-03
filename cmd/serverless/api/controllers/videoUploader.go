@@ -1,14 +1,12 @@
-package handlers
+package controllers
 
 import (
 	"encoding/json"
 	"io"
 	"net/http"
 	"os"
-	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/ESSantana/streaming-test/internal/services/interfaces"
 )
 
 type VideoData struct {
@@ -17,16 +15,16 @@ type VideoData struct {
 }
 
 type VideoUploader struct {
-	s3Client *s3.S3
+	videoService interfaces.VideoService
 }
 
-func NewVideoUploader(s3Client *s3.S3) *VideoUploader {
+func NewVideoUploader(videoService interfaces.VideoService) *VideoUploader {
 	return &VideoUploader{
-		s3Client: s3Client,
+		videoService: videoService,
 	}
 }
 
-func (v *VideoUploader) Process(w http.ResponseWriter, r *http.Request) {
+func (v *VideoUploader) CreateS3PresignedPutURL(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -40,15 +38,7 @@ func (v *VideoUploader) Process(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req, _ := v.s3Client.PutObjectRequest(
-		&s3.PutObjectInput{
-			Bucket: aws.String(os.Getenv("VIDEO_BUCKET")),
-			Key:    aws.String("raw/" + videoData.Filename),
-			ContentType: aws.String(videoData.ContentType),
-		},
-	)
-
-	url, err := req.Presign(time.Minute * 15)
+	url, err := v.videoService.CreateS3PresignedPutURL(r.Context(), os.Getenv("VIDEO_BUCKET"), videoData.Filename, videoData.ContentType)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

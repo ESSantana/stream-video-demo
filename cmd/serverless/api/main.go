@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
-	"net/http"
 
-	"github.com/ESSantana/streaming-test/cmd/serverless/api/services"
+	"github.com/ESSantana/streaming-test/cmd/serverless/api/controllers"
+	"github.com/ESSantana/streaming-test/internal/services"
+	"github.com/ESSantana/streaming-test/internal/services/interfaces"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
@@ -15,25 +16,19 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-var chiLambda *chiadapter.ChiLambda
+var (
+	chiLambda *chiadapter.ChiLambda
+	videoService interfaces.VideoService
+)
 
 func init() {
+	loadDependencies()
+
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
 
-	session, err := session.NewSession()
-	if err != nil {
-		panic(err)
-	}
-	s3Client := s3.New(session, aws.NewConfig().WithRegion("sa-east-1"))
-
-	videoUploader := handlers.NewVideoUploader(s3Client)
-
-	router.Get("/ping", func(response http.ResponseWriter, request *http.Request) {
-		response.Write([]byte("pong"))
-	})
-
-	router.Post("/upload", videoUploader.Process)
+	videoController := controllers.NewVideoUploader(videoService)
+	router.Post("/upload", videoController.CreateS3PresignedPutURL)
 
 	chiLambda = chiadapter.New(router)
 }
@@ -44,4 +39,14 @@ func main() {
 
 func Handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	return chiLambda.ProxyWithContext(ctx, req)
+}
+
+func loadDependencies() {
+	session, err := session.NewSession()
+	if err != nil {
+		panic(err)
+	}
+	s3Client := s3.New(session, aws.NewConfig().WithRegion("sa-east-1"))
+
+	videoService = services.NewVideoService(s3Client)
 }

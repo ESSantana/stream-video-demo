@@ -3,5 +3,6 @@ package interfaces
 import "context"
 
 type VideoService interface {
-	UploadVideo(ctx context.Context, filename string, extension string, data []byte) (err error)
+	CreateS3PresignedPutURL(ctx context.Context, bucket, filename, contentType string) (presignedURL string, err error)
+	ProcessVideoWithOptions(ctx context.Context, bucket, videoKey string, options interface{}) (err error)
 }
