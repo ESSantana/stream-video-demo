@@ -16,7 +16,11 @@ data "aws_iam_policy_document" "new_upload_notification_policy" {
       identifiers = ["s3.amazonaws.com"]
     }
 
-    actions   = ["SNS:*"]
+    actions   = [
+      "sns:Publish",
+      "sns:GetTopicAttributes",
+      "sns:GetDataProtectionPolicy",
+    ]
     resources = ["new-upload-topic-${var.aws_region}-${var.stage}"]
 
     condition {
