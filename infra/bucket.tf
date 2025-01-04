@@ -38,12 +38,12 @@ resource "aws_sns_topic" "new_upload_topic" {
   policy = data.aws_iam_policy_document.new_upload_notification_policy.json
 }
 
-# resource "aws_s3_bucket_notification" "bucket_notification" {
-#   bucket = aws_s3_bucket.video_bucket.id
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  bucket = aws_s3_bucket.video_bucket.id
 
-#   topic {
-#     topic_arn     = aws_sns_topic.new_upload_topic.arn
-#     events        = ["s3:ObjectCreated:*"]
-#     filter_prefix = "raw"
-#   }
-# }
+  topic {
+    topic_arn     = aws_sns_topic.new_upload_topic.arn
+    events        = ["s3:ObjectCreated:*"]
+    filter_prefix = "raw"
+  }
+}
