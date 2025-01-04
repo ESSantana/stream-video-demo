@@ -4,7 +4,7 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . ./
-RUN GOARCH=arm64 CGO_ENABLE=0 GOOS=linux go build -ldflags="-s -w" -o /server ./cmd/server/main.go
+RUN GOARCH=amd64 CGO_ENABLE=0 GOOS=linux go build -ldflags="-s -w" -o /server ./cmd/server/main.go
 
 # SETUP CONTAINER RELEASE
 FROM scratch AS release-stage
