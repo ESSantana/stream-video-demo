@@ -1,4 +1,3 @@
-
 module "stream_video_api" { 
     source = "./modules/lambda-function"
 
