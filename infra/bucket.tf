@@ -17,7 +17,7 @@ data "aws_iam_policy_document" "new_upload_notification_policy" {
     }
 
     actions   = ["SNS:Publish"]
-    resources = ["new-upload-topic-${var.region}-${var.stage}"]
+    resources = ["new-upload-topic-${var.aws_region}-${var.stage}"]
 
     condition {
       test     = "ArnLike"
@@ -28,7 +28,7 @@ data "aws_iam_policy_document" "new_upload_notification_policy" {
 }
 
 resource "aws_sns_topic" "new_upload_topic" {
-  name   = "new-upload-topic-${var.region}-${var.stage}"
+  name   = "new-upload-topic-${var.aws_region}-${var.stage}"
   policy = data.aws_iam_policy_document.new_upload_notification_policy.json
 }
 
