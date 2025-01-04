@@ -27,7 +27,7 @@ data "aws_iam_policy_document" "new_upload_notification_policy" {
 
     condition {
       test     = "StringEquals"
-      variable = "AWS:SourceOwner"
+      variable = "AWS:SourceAccount"
       values   = [local.account_id]
     }
   }
