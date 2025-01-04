@@ -1,6 +1,7 @@
 resource "aws_s3_bucket" "video_bucket" {
   bucket = "essantana-videos-${var.aws_region}-${var.stage}"
-
+  region = var.aws_region
+  
   tags = {
     Name        = "essantana-videos-${var.aws_region}-${var.stage}"
     Environment = var.stage
@@ -44,6 +45,6 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
   topic {
     topic_arn     = aws_sns_topic.new_upload_topic.arn
     events        = ["s3:ObjectCreated:*"]
-    filter_prefix = "raw"
+    filter_prefix   = "raw"
   }
 }
