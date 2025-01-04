@@ -16,8 +16,20 @@ data "aws_iam_policy_document" "new_upload_notification_policy" {
       identifiers = ["s3.amazonaws.com"]
     }
 
-    actions   = ["SNS:Publish"]
+    actions   = ["SNS:*"]
     resources = ["new-upload-topic-${var.aws_region}-${var.stage}"]
+
+    condition {
+      test     = "ArnLike"
+      variable = "AWS:SourceArn"
+      values   = [aws_s3_bucket.video_bucket.arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceAccount"
+      values   = [local.account_id]
+    }
   }
 }
 
