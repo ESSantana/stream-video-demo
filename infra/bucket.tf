@@ -17,9 +17,11 @@ data "aws_iam_policy_document" "new_upload_notification_policy" {
     }
 
     actions   = [
-      "sns:Publish"
+      "sns:Publish",
+      "sns:GetTopicAttributes",
+      "sns:GetDataProtectionPolicy",
     ]
-    resources = [aws_sns_topic.new_upload_topic.arn]
+    resources = ["arn:aws:sns:${var.aws_region}:${local.account_id}:new-upload-topic-${var.aws_region}-${var.stage}"]
 
     condition {
       test     = "ArnLike"
