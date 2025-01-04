@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"context"
+	"net/http"
 	"os"
 
 	"github.com/ESSantana/streaming-test/internal/services/interfaces"
@@ -15,7 +15,10 @@ func NewVideoProcessorHandler(videoService interfaces.VideoService) *VideoProces
 	return &VideoProcessorHandler{videoService: videoService}
 }
 
-func (h *VideoProcessorHandler) ProcessVideo(ctx context.Context, videoKey string) error {
-	return h.videoService.ProcessVideoWithOptions(ctx, os.Getenv("VIDEO_BUCKET"), videoKey, nil)
-
+func (h *VideoProcessorHandler) ProcessVideo(w http.ResponseWriter, r *http.Request) {
+	err := h.videoService.ProcessVideoWithOptions(r.Context(), os.Getenv("VIDEO_BUCKET"), "videoKey", nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

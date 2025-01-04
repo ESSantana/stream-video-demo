@@ -1,4 +1,33 @@
 
+module "stream_video_api" { 
+    source = "./modules/lambda-function"
+
+    function_name = "stream-video-api"
+    stage         = var.stage
+    handler       = "bin/api/bootstrap" 
+    environment_variables = {
+      VIDEO_BUCKET = aws_s3_bucket.video_bucket.id
+    }
+
+    tags = {
+      STAGE = var.stage
+    }
+}
+
+data "aws_iam_policy_document" "stream_video_policy_document" {
+  statement {
+    effect    = "Allow"
+    actions   = ["s3:*"]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "stream_video_role_policy" {
+  name    = "stream-video-role-policy"
+  role    = module.stream_video_api.lambda_role_id
+  policy  = data.aws_iam_policy_document.stream_video_policy_document.json
+}
+
 resource "aws_api_gateway_rest_api" "stream_video_api" {
   name = "stream_video_api-${var.stage}"
 }

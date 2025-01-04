@@ -1,4 +1,4 @@
-name: "Deploy Video Processor Job"
+name: "Deploy Jobs"
 
 on:
   push:
@@ -7,8 +7,8 @@ on:
       - development
     paths:
       - "internal/**"
-      - "cmd/serverless/jobs/video-processor/**"
-      - ".github/workflows/deploy-video-processor.yml"
+      - "cmd/server/jobs/**"
+      - ".github/workflows/deploy-jobs.yml"
 
 permissions:
   id-token: write
