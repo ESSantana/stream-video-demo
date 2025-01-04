@@ -21,8 +21,14 @@ data "aws_iam_policy_document" "new_upload_notification_policy" {
 
     condition {
       test     = "ArnLike"
-      variable = "aws:SourceArn"
+      variable = "AWS:SourceArn"
       values   = [aws_s3_bucket.video_bucket.arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceOwner"
+      values   = [local.account_id]
     }
   }
 }

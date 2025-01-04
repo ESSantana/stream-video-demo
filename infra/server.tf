@@ -1,3 +1,9 @@
+data "aws_caller_identity" "current" {}
+
+locals {
+    account_id = data.aws_caller_identity.current.account_id
+}
+
 resource "aws_instance" "server" {
   ami                     = "ami-03c4a8310002221c7"
   instance_type           = "t2.micro"
