@@ -13,9 +13,8 @@ require (
 
 require (
 	github.com/aws/aws-lambda-go v1.47.0
-	github.com/aws/aws-sdk-go v1.38.20 // indirect
+	github.com/aws/aws-sdk-go v1.38.20
 	github.com/awslabs/aws-lambda-go-api-proxy v0.16.2
-	github.com/google/uuid v1.6.0
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/rs/zerolog v1.33.0
 	github.com/u2takey/ffmpeg-go v0.5.0
