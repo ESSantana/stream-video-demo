@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -11,6 +10,7 @@ import (
 	"github.com/ESSantana/streaming-test/internal/services/interfaces"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/rs/zerolog/log"
 
 	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
@@ -113,8 +113,13 @@ func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, vide
 
 		err = os.Remove(entry.Name())
 		if err != nil {
-			fmt.Println(err.Error())
+			log.Error().Msg(err.Error())
 		}
+	}
+
+	err = os.Remove(tempFilePath)
+	if err != nil {
+		log.Error().Msg(err.Error())
 	}
 
 	return nil

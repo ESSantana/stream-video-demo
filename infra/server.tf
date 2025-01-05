@@ -10,10 +10,15 @@ resource "aws_instance" "server" {
   user_data = file("./scripts/server_user_data.sh")
   vpc_security_group_ids  = [aws_security_group.server_security_group.id]
   key_name                = "aws-emerson-sa-east-1"
+  iam_instance_profile    = aws_iam_instance_profile.server_instance_profile.arn
+
+  tags = {
+    Name = "server-${var.stage}-${var.aws_region}"
+  }
 }
 
 resource "aws_security_group" "server_security_group" {
-  name        = "server_security_group"
+  name        = "server-security-group-${var.stage}-${var.aws_region}"
   description = "Server Security Group"
 
   ingress {
@@ -36,6 +41,52 @@ resource "aws_security_group" "server_security_group" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+}
+
+data "aws_iam_policy_document" "server_assume_role_policy" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
+}
+
+resource "aws_iam_role" "server_role" {
+  name = "server-role-${var.stage}-${var.aws_region}"
+  assume_role_policy = data.aws_iam_policy_document.server_assume_role_policy.json
+}
+
+data "aws_iam_policy_document" "server_s3_access_policy" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject"
+    ]
+
+    resources = [aws_s3_bucket.video_bucket.arn]
+  }
+}
+
+resource "aws_iam_policy" "server_s3_access_policy" {
+  name   = "server-s3-access-policy-${var.stage}-${var.aws_region}"
+  policy = data.aws_iam_policy_document.server_s3_access_policy.json
+}
+
+resource "aws_iam_role_policy_attachment" "server_role_attachment" {
+  role = aws_iam_role.server_role.id
+  policy_arn = aws_iam_policy.server_s3_access_policy.arn
+}
+
+resource "aws_iam_instance_profile" "server_instance_profile" {
+  name = "server-instance-profile-${var.stage}-${var.aws_region}"
+  role = aws_iam_role.role.name
 }
 
 resource "aws_sns_topic_subscription" "new_upload_topic_subscription" {

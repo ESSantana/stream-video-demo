@@ -1,11 +1,11 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
-
-	// "os"
+	"os"
 
 	"github.com/ESSantana/streaming-test/internal/services/interfaces"
 	"github.com/aws/aws-lambda-go/events"
@@ -42,19 +42,17 @@ func (h *VideoProcessorHandler) ProcessVideo(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	log.Info().Msg(s3Events.Records[0].S3.Object.Key)
-	// go func() {
-	// 	err = h.videoService.ProcessVideoWithOptions(r.Context(), os.Getenv("VIDEO_BUCKET"), "raw/epic_sax_guy.mp4", nil)
-	// 	if err != nil {
-	// 		http.Error(w, err.Error(), http.StatusInternalServerError)
-	// 		return
-	// 	}
-	// 	if err != nil {
-	// 		log.Error().Msg(err.Error())
-	// 	}
-	// }()
+	for _, record := range s3Events.Records {
+		go h.createProcessingRoutine(r.Context(), record.S3.Object.Key)
+	}
 
-	log.Info().Msg(string(data))
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Processing video"))
+}
+
+func (h *VideoProcessorHandler) createProcessingRoutine(ctx context.Context, videoKey string) {
+	err := h.videoService.ProcessVideoWithOptions(ctx, os.Getenv("VIDEO_BUCKET"), videoKey, nil)
+	if err != nil {
+		log.Error().Msg(err.Error())
+	}
 }
