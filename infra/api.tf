@@ -1,17 +1,17 @@
-module "stream_video_api" { 
-    source = "./modules/lambda-function"
+# module "stream_video_api" { 
+#     source = "./modules/lambda-function"
 
-    function_name = "stream-video-api"
-    stage         = var.stage
-    handler       = "bin/api/bootstrap" 
-    environment_variables = {
-      VIDEO_BUCKET = aws_s3_bucket.video_bucket.id
-    }
+#     function_name = "stream-video-api"
+#     stage         = var.stage
+#     handler       = "bin/api/bootstrap" 
+#     environment_variables = {
+#       VIDEO_BUCKET = aws_s3_bucket.video_bucket.id
+#     }
 
-    tags = {
-      STAGE = var.stage
-    }
-}
+#     tags = {
+#       STAGE = var.stage
+#     }
+# }
 
 data "aws_iam_policy_document" "stream_video_policy_document" {
   statement {
