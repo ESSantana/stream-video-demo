@@ -70,7 +70,7 @@ data "aws_iam_policy_document" "server_s3_access_policy" {
       "s3:PutObject"
     ]
 
-    resources = [aws_s3_bucket.video_bucket.arn]
+    resources = ["${aws_s3_bucket.video_bucket.arn}/*"]
   }
 }
 

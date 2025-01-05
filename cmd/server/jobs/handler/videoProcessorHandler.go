@@ -29,11 +29,11 @@ func (h *VideoProcessorHandler) ProcessVideo(w http.ResponseWriter, r *http.Requ
 	}
 	defer r.Body.Close()
 
-	if strings.Contains(string(data), "subscription_url_sla"){
+	// if strings.Contains(string(data), "subscription_url_sla"){
 		log.Info().Msg(string(data))
 		// TODO autoconfirm subscription
 		return
-	}
+	// }
 
 	var snsMessage events.SNSEntity
 	err = json.Unmarshal(data, &snsMessage)
