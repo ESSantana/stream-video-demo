@@ -8,7 +8,7 @@ resource "aws_instance" "server" {
   ami                     = "ami-03c4a8310002221c7"
   instance_type           = "t2.micro"
   user_data = file("./scripts/server_user_data.sh")
-  vpc_security_group_ids  = [aws_security_group.server_security_group.id]
+  # vpc_security_group_ids  = [aws_security_group.server_security_group.id]
   key_name                = "aws-emerson-sa-east-1"
   iam_instance_profile    = aws_iam_instance_profile.server_instance_profile.id
 
