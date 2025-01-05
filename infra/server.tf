@@ -10,7 +10,7 @@ resource "aws_instance" "server" {
   user_data = file("./scripts/server_user_data.sh")
   vpc_security_group_ids  = [aws_security_group.server_security_group.id]
   key_name                = "aws-emerson-sa-east-1"
-  iam_instance_profile    = aws_iam_instance_profile.server_instance_profile.arn
+  iam_instance_profile    = aws_iam_instance_profile.server_instance_profile.id
 
   tags = {
     Name = "server-${var.stage}-${var.aws_region}"
@@ -86,7 +86,7 @@ resource "aws_iam_role_policy_attachment" "server_role_attachment" {
 
 resource "aws_iam_instance_profile" "server_instance_profile" {
   name = "server-instance-profile-${var.stage}-${var.aws_region}"
-  role = aws_iam_role.role.name
+  role = aws_iam_role.server_role.id
 }
 
 resource "aws_sns_topic_subscription" "new_upload_topic_subscription" {
