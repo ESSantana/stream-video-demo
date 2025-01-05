@@ -41,5 +41,5 @@ resource "aws_security_group" "server_security_group" {
 resource "aws_sns_topic_subscription" "new_upload_topic_subscription" {
   topic_arn = aws_sns_topic.new_upload_topic.arn
   protocol  = "http"
-  endpoint  = "${aws_instance.server.public_dns}/video-processor"
+  endpoint  = "http://${aws_instance.server.public_dns}/video-processor"
 }
