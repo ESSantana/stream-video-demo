@@ -28,6 +28,11 @@ func (h *VideoProcessorHandler) ProcessVideo(w http.ResponseWriter, r *http.Requ
 	}
 	defer r.Body.Close()
 
+	if os.Getenv("SUBSCRIBE_TOPIC_MODE") == "true" {
+		log.Info().Msg(string(data))
+		return
+	}
+
 	var snsMessage events.SNSEntity
 	err = json.Unmarshal(data, &snsMessage)
 	if err != nil {
