@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strings"
+	// "strings"
 
 	"github.com/ESSantana/streaming-test/internal/services/interfaces"
 	"github.com/aws/aws-lambda-go/events"
