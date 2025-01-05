@@ -10,6 +10,7 @@ import (
 
 	"github.com/ESSantana/streaming-test/internal/services/interfaces"
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/rs/zerolog/log"
@@ -78,7 +79,7 @@ func (h *VideoProcessorHandler) confirmSNSSubscription(data []byte) {
 	if err != nil {
 		panic(err)
 	}
-	snsClient := sns.New(session)
+	snsClient := sns.New(session, aws.NewConfig().WithRegion("sa-east-1"))
 
 	_, err = snsClient.ConfirmSubscription(&subscriptionInput)
 	if err != nil {
