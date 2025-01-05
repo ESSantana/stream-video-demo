@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/ESSantana/streaming-test/internal/services/interfaces"
 	"github.com/aws/aws-lambda-go/events"
@@ -28,8 +29,9 @@ func (h *VideoProcessorHandler) ProcessVideo(w http.ResponseWriter, r *http.Requ
 	}
 	defer r.Body.Close()
 
-	if os.Getenv("SUBSCRIBE_TOPIC_MODE") == "true" {
+	if strings.Contains(string(data), "subscription_url_sla"){
 		log.Info().Msg(string(data))
+		// TODO autoconfirm subscription
 		return
 	}
 

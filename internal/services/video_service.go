@@ -111,7 +111,7 @@ func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, vide
 			return err
 		}
 
-		err = os.Remove(entry.Name())
+		err = os.Remove(os.TempDir() + "/processed/" + videoName + entry.Name())
 		if err != nil {
 			log.Error().Msg(err.Error())
 		}
