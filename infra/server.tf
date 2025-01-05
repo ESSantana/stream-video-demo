@@ -72,6 +72,16 @@ data "aws_iam_policy_document" "server_s3_access_policy" {
 
     resources = ["${aws_s3_bucket.video_bucket.arn}/*"]
   }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "sns:ConfirmSubscription"
+    ]
+
+    resources = [aws_sns_topic.new_upload_topic.arn]
+  }
 }
 
 resource "aws_iam_policy" "server_s3_access_policy" {

@@ -97,7 +97,7 @@ func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, vide
 	}
 
 	for _, entry := range entries {
-		data, err := os.OpenFile(entry.Name(), os.O_RDWR, 0666)
+		data, err := os.OpenFile(os.TempDir() + "/processed/" + videoName + entry.Name(), os.O_RDWR, 0666)
 		if err != nil {
 			return err
 		}
