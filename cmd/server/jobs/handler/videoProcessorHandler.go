@@ -6,10 +6,12 @@ import (
 	"io"
 	"net/http"
 	"os"
-	// "strings"
+	"strings"
 
 	"github.com/ESSantana/streaming-test/internal/services/interfaces"
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/rs/zerolog/log"
 )
 
@@ -29,11 +31,10 @@ func (h *VideoProcessorHandler) ProcessVideo(w http.ResponseWriter, r *http.Requ
 	}
 	defer r.Body.Close()
 
-	// if strings.Contains(string(data), "subscription_url_sla"){
-		log.Info().Msg(string(data))
-		// TODO autoconfirm subscription
+	if strings.Contains(string(data), "ConfirmSubscription") {
+		h.confirmSNSSubscription(data)
 		return
-	// }
+	}
 
 	var snsMessage events.SNSEntity
 	err = json.Unmarshal(data, &snsMessage)
@@ -62,4 +63,28 @@ func (h *VideoProcessorHandler) createProcessingRoutine(ctx context.Context, vid
 	if err != nil {
 		log.Error().Msg(err.Error())
 	}
+}
+
+func (h *VideoProcessorHandler) confirmSNSSubscription(data []byte) {
+	var subscriptionInput sns.ConfirmSubscriptionInput
+	err := json.Unmarshal(data, &subscriptionInput)
+	if err != nil {
+		//Good to have: notify the user that the subscription could not be confirmed
+		log.Error().Msg(err.Error())
+		return
+	}
+
+	session, err := session.NewSession()
+	if err != nil {
+		panic(err)
+	}
+	snsClient := sns.New(session)
+
+	_, err = snsClient.ConfirmSubscription(&subscriptionInput)
+	if err != nil {
+		//Good to have: notify the user that the subscription could not be confirmed
+		log.Error().Msg(err.Error())
+		return
+	}
+	log.Info().Msg("SNS subscription confirmed")
 }
