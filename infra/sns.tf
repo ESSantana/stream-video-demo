@@ -35,5 +35,5 @@ data "aws_iam_policy_document" "upload_notification_topic_policy" {
 resource "aws_sns_topic_subscription" "upload_notification_topic_server_subscription" {
   topic_arn = aws_sns_topic.upload_notification_topic.arn
   protocol  = "http"
-  endpoint  = "http://${aws_instance.server.public_dns}/video-processor"
+  endpoint  = "http://${aws_instance.stream_video.public_dns}/video-processor"
 }

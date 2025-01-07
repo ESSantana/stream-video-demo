@@ -21,7 +21,7 @@ resource "aws_instance" "stream_video" {
 }
 
 resource "aws_security_group" "sg_web_access_stream_video" {
-  name        = "sg-web-access-stream-video"
+  name        = "web-access-stream-video"
   description = "Security group to allow access to the web server from internet"
 
   ingress {
@@ -40,7 +40,7 @@ resource "aws_security_group" "sg_web_access_stream_video" {
 }
 
 resource "aws_security_group" "sg_remove_access_stream_video" {
-  name        = "sg-remove-access-stream-video"
+  name        = "remove-access-stream-video"
   description = "Security group to allow access to the server via SSH"
 
   ingress {
