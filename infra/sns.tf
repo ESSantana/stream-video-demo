@@ -16,7 +16,7 @@ data "aws_iam_policy_document" "upload_notification_topic_policy" {
     actions   = [
       "sns:Publish"
     ]
-    resources = [aws_sns_topic.upload_notification_topic.arn]
+    resources = ["arn:aws:sns:${var.aws_region}:${local.account_id}:upload-notification-${var.aws_region}-${var.stage}"]
 
     condition {
       test     = "ArnLike"
