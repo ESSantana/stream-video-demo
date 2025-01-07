@@ -5,7 +5,7 @@ module "stream_video_api" {
     stage         = var.stage
     handler       = "bin/api/bootstrap" 
     environment_variables = {
-      VIDEO_BUCKET = aws_s3_bucket.video_stream.id
+      # VIDEO_BUCKET = aws_s3_bucket.video_stream.id
     }
 
     tags = {
