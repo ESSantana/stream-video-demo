@@ -12,7 +12,7 @@ data "aws_iam_policy_document" "assume_role" {
 }
 
 resource "aws_iam_policy" "lambda_logging_policy" {
-  name   = "${var.function_name}-${var.stage}-${var.aws_region}-logging-policy"
+  name   = "${var.function_name}-${var.aws_region}-${var.stage}-logging-policy"
   policy = jsonencode({
     "Version": "2012-10-17",
     "Statement": [
@@ -29,7 +29,7 @@ resource "aws_iam_policy" "lambda_logging_policy" {
 }
 
 resource "aws_iam_role" "iam_for_lambda" {
-  name               = "iam-for-${var.function_name}-${var.stage}-${var.aws_region}"
+  name               = "iam-for-${var.function_name}-${var.aws_region}-${var.stage}"
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 
@@ -40,7 +40,7 @@ resource "aws_iam_role_policy_attachment" "function_logging_policy_attachment" {
 
 
 resource "aws_cloudwatch_log_group" "lambda_log_group" {
-  name = "/aws/lambda/${var.function_name}-${var.stage}-${var.aws_region}"
+  name = "/aws/lambda/${var.function_name}-${var.aws_region}-${var.stage}"
 
   # set one week for all lambda log groups 
   retention_in_days = 7 
@@ -60,7 +60,7 @@ data "archive_file" "dummy_code" {
 
 resource "aws_lambda_function" "lambda" {
   filename      = "${data.archive_file.dummy_code.output_path}"
-  function_name = "${var.function_name}-${var.stage}-${var.aws_region}"
+  function_name = "${var.function_name}-${var.aws_region}-${var.stage}"
   handler       = var.handler
   runtime       = var.runtime
   memory_size   = var.memory_size

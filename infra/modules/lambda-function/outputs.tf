@@ -1,5 +1,5 @@
 output "lambda_name" {
-  value       = "${var.function_name}-${var.stage}-${var.aws_region}"
+  value       = "${var.function_name}-${var.aws_region}-${var.stage}"
   description = "Lambda function name"
 }
 
