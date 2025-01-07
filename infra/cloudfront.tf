@@ -2,9 +2,7 @@ resource "aws_cloudfront_distribution" "video_stream_distribution" {
   origin {
     domain_name              = aws_s3_bucket.video_stream.bucket_regional_domain_name
     origin_id                = aws_s3_bucket.video_stream.id
-    s3_origin_config {
-      origin_access_identity = aws_cloudfront_origin_access_identity.stream_video_distribution_oai.cloudfront_access_identity_path
-    }
+    origin_access_control_id = aws_cloudfront_origin_access_control.stream_video_distribution_oac.id
   }
 
   enabled             = true
@@ -39,8 +37,12 @@ resource "aws_cloudfront_distribution" "video_stream_distribution" {
   }
 }
 
-resource "aws_cloudfront_origin_access_identity" "stream_video_distribution_oai" {
-  comment = "OAI to access S3 stream video bucket"
+resource "aws_cloudfront_origin_access_control" "stream_video_distribution_oac" {
+  name                              = "stream-video-distribution-oai"
+  description                       = "OAC to access S3 stream video bucket"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
 }
 
 data "aws_cloudfront_cache_policy" "cache_policy" {
