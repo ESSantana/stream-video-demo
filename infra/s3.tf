@@ -7,6 +7,12 @@ resource "aws_s3_bucket" "video_stream" {
   }
 }
 
+resource "aws_ssm_parameter" "ssm_bucket_name" {
+  name  = "/video-stream/s3/bucket-name"
+  type  = "String"
+  value = aws_s3_bucket.video_stream.id
+}
+
 resource "aws_s3_bucket_cors_configuration" "video_stream_cors_configuration" {
   bucket = aws_s3_bucket.video_stream.id
 

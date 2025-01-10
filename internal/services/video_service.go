@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ESSantana/streaming-test/internal/domain"
 	"github.com/ESSantana/streaming-test/internal/services/interfaces"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -44,7 +45,7 @@ func (s *VideoService) CreateS3PresignedPutURL(ctx context.Context, bucket, file
 	return presignedURL, nil
 }
 
-func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, videoKey string, options interface{}) (err error) {
+func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, videoKey string, options domain.VideoOptions) (err error) {
 	videoObject, err := s.s3Client.GetObject(&s3.GetObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(videoKey),
@@ -61,43 +62,52 @@ func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, vide
 
 	videoKeyParts := strings.Split(videoKey, "/")
 	videoName := strings.ReplaceAll(videoKeyParts[len(videoKeyParts)-1], ".mp4", "")
+	tmpDirRaw := os.TempDir() + "/raw"
+	tmpDirProcessed := os.TempDir() + "/processed/" + videoName + "/"
 
-	err = os.MkdirAll(os.TempDir()+"/raw", os.ModePerm)
+	err = os.MkdirAll(tmpDirRaw, os.ModePerm)
 	if err != nil {
 		return err
 	}
-	err = os.MkdirAll(os.TempDir()+"/processed/"+videoName, os.ModePerm)
+	err = os.MkdirAll(tmpDirProcessed, os.ModePerm)
 	if err != nil {
 		return err
 	}
 
-	tempFilePath := os.TempDir() + "/" + videoKey
+	tempFilePath := tmpDirRaw + videoKey
 	err = os.WriteFile(tempFilePath, videoData, 0666)
 	if err != nil {
 		return err
 	}
 
-	manifestFilePath := os.TempDir() + "/processed/" + videoName + "/index.m3u8"
-	segmentFilePath := os.TempDir() + "/processed/" + videoName + "/segment%03d.ts"
+	manifestFilePath := tmpDirProcessed + "index.m3u8"
+	segmentFilePath := tmpDirProcessed + options.SegmentPrefix + "%03d.ts"
 
-	_ = ffmpeg.Input(tempFilePath).Output(manifestFilePath, ffmpeg.KwArgs{
-		"vcodec":               "libx264",
-		"acodec":               "acc",
+	video := ffmpeg.Input(tempFilePath).Output(manifestFilePath, ffmpeg.KwArgs{
+		"vcodec":               options.VideoEncoder,
+		"acodec":               options.AudioEncoder,
 		"codec":                "copy",
 		"start_number":         0,
-		"hls_time":             10,
+		"hls_time":             options.HLSFileSize,
 		"hls_playlist_type":    "vod",
 		"hls_segment_filename": segmentFilePath,
 		"hls_list_size":        0,
-	}).ErrorToStdOut().Run()
+	}).ErrorToStdOut()
 
-	entries, err := os.ReadDir(os.TempDir() + "/processed/" + videoName)
+	thumbnail := ffmpeg.Input(tempFilePath).Output(tmpDirProcessed+"/thumbnail.jpg", ffmpeg.KwArgs{
+		"ss":       options.ThumbnailRefTime,
+		"frames:v": "1",
+	})
+
+	ffmpeg.MergeOutputs(video, thumbnail).OverWriteOutput().ErrorToStdOut().Run()
+
+	entries, err := os.ReadDir(tmpDirProcessed)
 	if err != nil {
 		return err
 	}
 
 	for _, entry := range entries {
-		data, err := os.OpenFile(os.TempDir()+"/processed/"+videoName+"/"+entry.Name(), os.O_RDWR, 0666)
+		data, err := os.OpenFile(tmpDirProcessed+"/"+entry.Name(), os.O_RDWR, 0666)
 		if err != nil {
 			return err
 		}
@@ -111,7 +121,7 @@ func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, vide
 			return err
 		}
 
-		err = os.Remove(os.TempDir() + "/processed/" + videoName + "/" + entry.Name())
+		err = os.Remove(tmpDirProcessed + "/" + entry.Name())
 		if err != nil {
 			log.Error().Msg(err.Error())
 		}
@@ -123,4 +133,24 @@ func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, vide
 	}
 
 	return nil
+}
+
+func (s *VideoService) ListAvailableContent(ctx context.Context, bucket string) (availableContent []string, err error) {
+	out, err := s.s3Client.ListObjects(
+		&s3.ListObjectsInput{
+			Bucket: aws.String(bucket),
+			Prefix: aws.String("processed/"),
+		},
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	availableContent = make([]string, 0)
+	for _, content := range out.Contents {
+		availableContent = append(availableContent, *content.Key)
+	}
+
+	return availableContent, nil
 }

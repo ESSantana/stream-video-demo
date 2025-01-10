@@ -37,6 +37,12 @@ resource "aws_cloudfront_distribution" "video_stream_distribution" {
   }
 }
 
+resource "aws_ssm_parameter" "ssm_cloudfront_distribution" {
+  name  = "/video-stream/cloudfront/distribution"
+  type  = "String"
+  value = aws_cloudfront_distribution.video_stream_distribution.domain_name
+}
+
 resource "aws_cloudfront_origin_access_control" "stream_video_distribution_oac" {
   name                              = "stream-video-distribution-oai"
   description                       = "OAC to access S3 stream video bucket"

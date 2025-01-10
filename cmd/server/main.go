@@ -49,8 +49,10 @@ func setupRoute() {
 	})
 
 	// API endpoints
-	videoController := controllers.NewVideoUploader(videoService)
+	videoController := controllers.NewVideoController(videoService)
 	router.Post("/upload", videoController.CreateS3PresignedPutURL)
+	router.Get("/videos", videoController.ListAvailableVideos)
+	router.Get("/videos/{video}", videoController.GetVideoDistribution)
 
 	// Jobs endpoints
 	videoProcessorHandler := handler.NewVideoProcessorHandler(videoService)

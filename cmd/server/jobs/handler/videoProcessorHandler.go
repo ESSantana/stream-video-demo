@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/ESSantana/streaming-test/internal/domain"
 	"github.com/ESSantana/streaming-test/internal/services/interfaces"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
@@ -60,7 +61,7 @@ func (h *VideoProcessorHandler) ProcessVideo(w http.ResponseWriter, r *http.Requ
 }
 
 func (h *VideoProcessorHandler) createProcessingRoutine(ctx context.Context, videoKey string) {
-	err := h.videoService.ProcessVideoWithOptions(ctx, os.Getenv("VIDEO_BUCKET"), videoKey, nil)
+	err := h.videoService.ProcessVideoWithOptions(ctx, os.Getenv("VIDEO_BUCKET"), videoKey, domain.DefaultVideoOptions())
 	if err != nil {
 		log.Error().Msg(err.Error())
 	}

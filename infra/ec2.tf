@@ -90,6 +90,16 @@ data "aws_iam_policy_document" "stream_video_permissions_policy_document" {
 
     resources = [aws_sns_topic.upload_notification_topic.arn]
   }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "ssm:GetParameter"
+    ]
+
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_policy" "stream_video_permissions_policy" {
