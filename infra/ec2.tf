@@ -75,10 +75,14 @@ data "aws_iam_policy_document" "stream_video_permissions_policy_document" {
 
     actions = [
       "s3:GetObject",
-      "s3:PutObject"
+      "s3:PutObject", 
+      "s3:ListBucket"
     ]
 
-    resources = ["${aws_s3_bucket.video_stream.arn}/*"]
+    resources = [
+      aws_s3_bucket.video_stream.arn,
+      "${aws_s3_bucket.video_stream.arn}/*"
+    ]
   }
 
   statement {

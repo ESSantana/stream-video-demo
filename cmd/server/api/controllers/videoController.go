@@ -62,7 +62,7 @@ func (v *VideoController) CreateS3PresignedPutURL(w http.ResponseWriter, r *http
 }
 
 func (v *VideoController) ListAvailableVideos(w http.ResponseWriter, r *http.Request) {
-	availableVideos, err := v.videoService.ListAvailableContent(r.Context(), os.Getenv("VIDEO_BUCKET"))
+	availableVideos, err := v.videoService.ListAvailableVideos(r.Context(), os.Getenv("VIDEO_BUCKET"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

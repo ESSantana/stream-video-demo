@@ -94,7 +94,7 @@ func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, vide
 		"hls_list_size":        0,
 	}).ErrorToStdOut()
 
-	thumbnail := ffmpeg.Input(tempFilePath).Output(tmpDirProcessed+"/thumbnail.jpg", ffmpeg.KwArgs{
+	thumbnail := ffmpeg.Input(tempFilePath).Output(tmpDirProcessed+"thumbnail.jpg", ffmpeg.KwArgs{
 		"ss":       options.ThumbnailRefTime,
 		"frames:v": "1",
 	})
@@ -107,7 +107,7 @@ func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, vide
 	}
 
 	for _, entry := range entries {
-		data, err := os.OpenFile(tmpDirProcessed+"/"+entry.Name(), os.O_RDWR, 0666)
+		data, err := os.OpenFile(tmpDirProcessed+entry.Name(), os.O_RDWR, 0666)
 		if err != nil {
 			return err
 		}
@@ -121,7 +121,7 @@ func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, vide
 			return err
 		}
 
-		err = os.Remove(tmpDirProcessed + "/" + entry.Name())
+		err = os.Remove(tmpDirProcessed + entry.Name())
 		if err != nil {
 			log.Error().Msg(err.Error())
 		}
@@ -135,7 +135,7 @@ func (s *VideoService) ProcessVideoWithOptions(ctx context.Context, bucket, vide
 	return nil
 }
 
-func (s *VideoService) ListAvailableContent(ctx context.Context, bucket string) (availableContent []string, err error) {
+func (s *VideoService) ListAvailableVideos(ctx context.Context, bucket string) (availableVideos []string, err error) {
 	out, err := s.s3Client.ListObjects(
 		&s3.ListObjectsInput{
 			Bucket: aws.String(bucket),
@@ -147,10 +147,14 @@ func (s *VideoService) ListAvailableContent(ctx context.Context, bucket string) 
 		return nil, err
 	}
 
-	availableContent = make([]string, 0)
+	availableVideos = make([]string, 0)
 	for _, content := range out.Contents {
-		availableContent = append(availableContent, *content.Key)
+		if !strings.HasSuffix(*content.Key, ".m3u8") {
+			continue
+		}
+		videoName := strings.Split(*content.Key, "/")[1]
+		availableVideos = append(availableVideos, videoName)
 	}
 
-	return availableContent, nil
+	return availableVideos, nil
 }
