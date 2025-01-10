@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
@@ -41,14 +42,14 @@ func (v *VideoController) CreateS3PresignedPutURL(w http.ResponseWriter, r *http
 		return
 	}
 
-	url, err := v.videoService.CreateS3PresignedPutURL(r.Context(), os.Getenv("VIDEO_BUCKET"), videoData.Filename, videoData.ContentType)
+	presignedURL, err := v.videoService.CreateS3PresignedPutURL(r.Context(), os.Getenv("VIDEO_BUCKET"), videoData.Filename, videoData.ContentType)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	data := dto.VideoUploadResponse{
-		PresignedURL: url,
+		PresignedURL: url.QueryEscape(presignedURL),
 	}
 	res, err := json.Marshal(data)
 	if err != nil {
