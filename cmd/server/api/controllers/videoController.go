@@ -11,6 +11,7 @@ import (
 	"github.com/ESSantana/streaming-test/internal/services/interfaces"
 	"github.com/ESSantana/streaming-test/pkg/dto"
 	"github.com/go-chi/chi/v5"
+	"github.com/rs/zerolog/log"
 )
 
 type VideoController struct {
@@ -110,13 +111,16 @@ func (v *VideoController) GetVideoDistribution(w http.ResponseWriter, r *http.Re
 
 func (v *VideoController) mountAndValidateDistributionURL(videoName string) string {
 	videoDistributionURL := "https://" + os.Getenv("CLOUDFRONT_DIST") + "/" + "processed/" + videoName + "/index.m3u8"
+	log.Info().Msgf("target url: %s", videoDistributionURL)
 
 	res, err := v.defaultClient.Head(videoDistributionURL)
 	if err != nil {
+		log.Error().Msgf("HEAD request error: %s", err.Error())
 		return ""
 	}
 
 	if res.StatusCode != http.StatusOK {
+		log.Error().Msgf("status code not ok: %d", res.StatusCode)
 		return ""
 	}
 
