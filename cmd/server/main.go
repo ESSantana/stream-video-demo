@@ -60,9 +60,10 @@ func setupRoute() {
 	videoController := controllers.NewVideoController(videoService)
 	router.Post("/upload", videoController.CreateS3PresignedPutURL)
 	router.Get("/videos", videoController.ListAvailableVideos)
-	router.Get("/videos/{video}", videoController.GetVideoDistribution)
 
 	// Jobs endpoints
+	// To handle multiple jobs execution, we can create use a larger ec2 instance with more VCPUs
+	// or use a schedule job to consume from a SQS Queue instead of use a SNS Topic
 	videoProcessorHandler := handler.NewVideoProcessorHandler(videoService)
 	router.Post("/video-processor", videoProcessorHandler.ProcessVideo)
 }

@@ -152,8 +152,9 @@ func (s *VideoService) ListAvailableVideos(ctx context.Context, bucket string) (
 		if !strings.HasSuffix(*content.Key, ".m3u8") {
 			continue
 		}
-		videoName := strings.Split(*content.Key, "/")[1]
-		availableVideos = append(availableVideos, videoName)
+		videoName := strings.ReplaceAll(*content.Key, "/index.m3u8", "")
+		videoDistributionURL := "https://" + os.Getenv("CLOUDFRONT_DIST") + "/" + videoName
+		availableVideos = append(availableVideos, videoDistributionURL)
 	}
 
 	return availableVideos, nil

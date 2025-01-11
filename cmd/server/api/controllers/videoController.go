@@ -10,8 +10,6 @@ import (
 
 	"github.com/ESSantana/streaming-test/internal/services/interfaces"
 	"github.com/ESSantana/streaming-test/pkg/dto"
-	"github.com/go-chi/chi/v5"
-	"github.com/rs/zerolog/log"
 )
 
 type VideoController struct {
@@ -85,43 +83,4 @@ func (v *VideoController) ListAvailableVideos(w http.ResponseWriter, r *http.Req
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(res)
-}
-
-func (v *VideoController) GetVideoDistribution(w http.ResponseWriter, r *http.Request) {
-	videoName := chi.URLParam(r, "video")
-
-	videoDistributionURL := v.mountAndValidateDistributionURL(videoName)
-	if videoDistributionURL == "" {
-		http.Error(w, "Video not found", http.StatusNotFound)
-		return
-	}
-
-	data := dto.VideoDistributionResponse{
-		VideoURL: videoDistributionURL,
-	}
-	res, err := json.Marshal(data)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write(res)
-}
-
-func (v *VideoController) mountAndValidateDistributionURL(videoName string) string {
-	videoDistributionURL := "https://" + os.Getenv("CLOUDFRONT_DIST") + "/" + "processed/" + videoName + "/index.m3u8"
-
-	res, err := v.defaultClient.Head(videoDistributionURL)
-	if err != nil {
-		log.Error().Msgf("HEAD request error: %s", err.Error())
-		return ""
-	}
-
-	if res.StatusCode != http.StatusOK {
-		log.Error().Msgf("status code not ok: %d", res.StatusCode)
-		return ""
-	}
-
-	return videoDistributionURL
 }
