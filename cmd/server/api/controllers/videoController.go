@@ -109,7 +109,7 @@ func (v *VideoController) GetVideoDistribution(w http.ResponseWriter, r *http.Re
 }
 
 func (v *VideoController) mountAndValidateDistributionURL(videoName string) string {
-	videoDistributionURL := os.Getenv("CLOUDFRONT_DIST") + "/" + "processed/" + videoName + "/index.m3u8"
+	videoDistributionURL := "https://" + os.Getenv("CLOUDFRONT_DIST") + "/" + "processed/" + videoName + "/index.m3u8"
 
 	res, err := v.defaultClient.Head(videoDistributionURL)
 	if err != nil {
