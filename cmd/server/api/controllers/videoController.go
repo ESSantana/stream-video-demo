@@ -21,7 +21,7 @@ type VideoController struct {
 
 func NewVideoController(videoService interfaces.VideoService) *VideoController {
 	httpClient := http.Client{
-		Timeout: time.Second * 2,
+		Timeout: time.Second * 5,
 	}
 	return &VideoController{
 		videoService:  videoService,
@@ -111,7 +111,6 @@ func (v *VideoController) GetVideoDistribution(w http.ResponseWriter, r *http.Re
 
 func (v *VideoController) mountAndValidateDistributionURL(videoName string) string {
 	videoDistributionURL := "https://" + os.Getenv("CLOUDFRONT_DIST") + "/" + "processed/" + videoName + "/index.m3u8"
-	log.Info().Msgf("target url: %s", videoDistributionURL)
 
 	res, err := v.defaultClient.Head(videoDistributionURL)
 	if err != nil {
