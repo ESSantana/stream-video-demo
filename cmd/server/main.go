@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/rs/zerolog"
 )
 
@@ -35,6 +36,13 @@ func main() {
 func setupRoute() {
 	router = chi.NewRouter()
 	router.Use(middleware.Logger)
+	router.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "HEAD", "OPTIONS"},
+		AllowedHeaders:   []string{"*"},
+		AllowCredentials: false,
+		MaxAge:           300,
+	}))
 
 	// Health check endpoint
 	router.Get("/health", func(w http.ResponseWriter, r *http.Request) {
