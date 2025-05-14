@@ -29,7 +29,7 @@ jobs:
       - name: Configure aws credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::430118847006:role/GithubActionsESSantanPipeline
+          role-to-assume: arn:aws:iam::881757053222:role/GithubActions
           role-session-name: Github_to_AWS_via_FederatedOIC
           aws-region: "sa-east-1"
 
@@ -38,12 +38,13 @@ jobs:
         uses: ./.github/actions/deploy/infra
         with:
           environment: "development"
-          aws-statefile-s3-bucket: essantana-sa-east-1-terraform-pipeline
+          aws-statefile-s3-bucket: emershow-sa-east-1-terraform-state
+          aws-region: "sa-east-1"
 
       - name: deploy prod
         if: ${{ github.ref == 'refs/heads/main' }}
         uses: ./.github/actions/deploy/infra
         with:
           environment: "production"
-          aws-statefile-s3-bucket: essantana-sa-east-1-terraform-pipeline
-
+          aws-statefile-s3-bucket: emershow-sa-east-1-terraform-state
+          aws-region: "sa-east-1"

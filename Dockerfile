@@ -1,5 +1,5 @@
 #BUILD GO APP
-FROM golang:1.23-bookworm AS build-stage
+FROM golang:1.24-bookworm AS build-stage
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
@@ -7,7 +7,7 @@ COPY . ./
 RUN CGO_ENABLE=0 GOOS=linux go build -ldflags="-s -w" -o /server ./cmd/server/main.go
 
 # GET ffmpeg AND MAKE SH AVAILABLE FOR RELEASE STAGE
-FROM busybox:1.35.0-uclibc AS busybox
+FROM busybox:1.37.0-uclibc AS busybox
 WORKDIR /
 RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz && tar -xf ffmpeg-release-amd64-static.tar.xz
 RUN mv ffmpeg-7.0.2-amd64-static/ ./ffmpeg

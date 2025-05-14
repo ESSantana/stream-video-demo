@@ -11,8 +11,8 @@ export VIDEO_BUCKET=$(aws ssm get-parameter --name "/video-stream/s3/bucket-name
 export CLOUDFRONT_DIST=$(aws ssm get-parameter --name "/video-stream/cloudfront/distribution" --query "Parameter.Value" --output text)
 source /etc/bashrc
 
-docker run -p 80:8080 -d --name video-streaming-server \
+docker run -p 80:8080 -d --name stream-video-demo \
     -e SERVER_PORT="8080" \
     -e VIDEO_BUCKET \
     -e CLOUDFRONT_DIST \
-    emersonsantanadev/video-streaming-server:latest
+    emersonsantanadev/stream-video-demo:latest

@@ -7,6 +7,9 @@ inputs:
   aws-statefile-s3-bucket:
     description: s3 bucket used to store state files
     required: true
+  aws-region:
+    description: region to deploy aws resources
+    required: true
 
 runs:
   using: "composite"

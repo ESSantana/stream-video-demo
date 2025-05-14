@@ -5,7 +5,7 @@ locals {
 }
 
 resource "aws_instance" "stream_video" {
-  ami                     = "ami-03c4a8310002221c7" # Replace with another AMI if you want another AMI or are not in the sa-east-1 region
+  ami                     = "ami-0b5a42ccb0a949cf1" # Replace with another id if you want use another AMI, are not in the sa-east-1 region or it changed
   instance_type           = "t2.micro"
   user_data = file("./scripts/ec2_user_data.sh")
   vpc_security_group_ids  = [
