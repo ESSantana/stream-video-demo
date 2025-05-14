@@ -21,7 +21,7 @@ data "aws_iam_policy_document" "upload_notification_topic_policy" {
     condition {
       test     = "ArnLike"
       variable = "AWS:SourceArn"
-      values   = [aws_s3_bucket.video_stream.arn]
+      values   = [aws_s3_bucket.video_stream_demo.arn]
     }
 
     condition {

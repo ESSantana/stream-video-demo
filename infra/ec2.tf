@@ -80,8 +80,8 @@ data "aws_iam_policy_document" "stream_video_permissions_policy_document" {
     ]
 
     resources = [
-      aws_s3_bucket.video_stream.arn,
-      "${aws_s3_bucket.video_stream.arn}/*"
+      aws_s3_bucket.video_stream_demo.arn,
+      "${aws_s3_bucket.video_stream_demo.arn}/*"
     ]
   }
 

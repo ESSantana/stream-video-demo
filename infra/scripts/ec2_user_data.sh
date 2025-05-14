@@ -7,8 +7,8 @@ systemctl enable docker
 systemctl start docker.service
 usermod -a -G docker ec2-user
 
-export VIDEO_BUCKET=$(aws ssm get-parameter --name "/video-stream/s3/bucket-name" --query "Parameter.Value" --output text)
-export CLOUDFRONT_DIST=$(aws ssm get-parameter --name "/video-stream/cloudfront/distribution" --query "Parameter.Value" --output text)
+export VIDEO_BUCKET=$(aws ssm get-parameter --name "/video-stream-demo/s3/bucket-name" --query "Parameter.Value" --output text)
+export CLOUDFRONT_DIST=$(aws ssm get-parameter --name "/video-stream-demo/cloudfront/distribution" --query "Parameter.Value" --output text)
 source /etc/bashrc
 
 docker run -p 80:8080 -d --name stream-video-demo \

@@ -1,20 +1,20 @@
-resource "aws_s3_bucket" "video_stream" {
-  bucket = "video-stream-${var.aws_region}-${var.stage}"
+resource "aws_s3_bucket" "video_stream_demo" {
+  bucket = "video-stream-demo-${var.aws_region}-${var.stage}"
   
   tags = {
-    Name        = "video-stream-${var.aws_region}-${var.stage}"
+    Name        = "video-stream-demo-${var.aws_region}-${var.stage}"
     Environment = var.stage
   }
 }
 
 resource "aws_ssm_parameter" "ssm_bucket_name" {
-  name  = "/video-stream/s3/bucket-name"
+  name  = "/video-stream-demo/s3/bucket-name"
   type  = "String"
-  value = aws_s3_bucket.video_stream.id
+  value = aws_s3_bucket.video_stream_demo.id
 }
 
-resource "aws_s3_bucket_cors_configuration" "video_stream_cors_configuration" {
-  bucket = aws_s3_bucket.video_stream.id
+resource "aws_s3_bucket_cors_configuration" "video_stream_demo_cors_configuration" {
+  bucket = aws_s3_bucket.video_stream_demo.id
 
   cors_rule {
     allowed_headers = ["*"]
@@ -25,8 +25,8 @@ resource "aws_s3_bucket_cors_configuration" "video_stream_cors_configuration" {
   }
 }
 
-resource "aws_s3_bucket_notification" "video_stream" {
-  bucket = aws_s3_bucket.video_stream.id
+resource "aws_s3_bucket_notification" "video_stream_demo" {
+  bucket = aws_s3_bucket.video_stream_demo.id
 
   topic {
     topic_arn     = aws_sns_topic.upload_notification_topic.arn
@@ -35,12 +35,12 @@ resource "aws_s3_bucket_notification" "video_stream" {
   }
 }
 
-resource "aws_s3_bucket_policy" "video_stream_bucket_policy" {
-  bucket = aws_s3_bucket.video_stream.id
-  policy = data.aws_iam_policy_document.video_stream_bucket_policy_document.json
+resource "aws_s3_bucket_policy" "video_stream_demo_bucket_policy" {
+  bucket = aws_s3_bucket.video_stream_demo.id
+  policy = data.aws_iam_policy_document.video_stream_demo_bucket_policy_document.json
 }
 
-data "aws_iam_policy_document" "video_stream_bucket_policy_document" {
+data "aws_iam_policy_document" "video_stream_demo_bucket_policy_document" {
   statement {
     principals {
       type        = "Service"
@@ -54,8 +54,8 @@ data "aws_iam_policy_document" "video_stream_bucket_policy_document" {
     condition {
       test     = "StringEquals"
       variable = "AWS:SourceArn"
-      values   = [aws_cloudfront_distribution.video_stream_distribution.arn]
+      values   = [aws_cloudfront_distribution.video_stream_demo_distribution.arn]
     }
-    resources = ["${aws_s3_bucket.video_stream.arn}/*"]
+    resources = ["${aws_s3_bucket.video_stream_demo.arn}/*"]
   }
 }

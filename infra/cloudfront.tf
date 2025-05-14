@@ -1,7 +1,7 @@
-resource "aws_cloudfront_distribution" "video_stream_distribution" {
+resource "aws_cloudfront_distribution" "video_stream_demo_distribution" {
   origin {
-    domain_name              = aws_s3_bucket.video_stream.bucket_regional_domain_name
-    origin_id                = aws_s3_bucket.video_stream.id
+    domain_name              = aws_s3_bucket.video_stream_demo.bucket_regional_domain_name
+    origin_id                = aws_s3_bucket.video_stream_demo.id
     origin_access_control_id = aws_cloudfront_origin_access_control.stream_video_distribution_oac.id
   }
 
@@ -10,7 +10,7 @@ resource "aws_cloudfront_distribution" "video_stream_distribution" {
   comment             = "Video Stream Files Distribution"
 
   default_cache_behavior {
-    target_origin_id          = aws_s3_bucket.video_stream.id
+    target_origin_id          = aws_s3_bucket.video_stream_demo.id
     allowed_methods           = ["GET", "HEAD", "OPTIONS"]
     cached_methods            = ["GET", "HEAD"]
     compress                  = true
@@ -28,7 +28,7 @@ resource "aws_cloudfront_distribution" "video_stream_distribution" {
   }
 
   tags = {
-    Name = "video_stream_distribution-${var.stage}"
+    Name = "video_stream_demo_distribution-${var.stage}"
     Environment = var.stage
   }
 
@@ -38,9 +38,9 @@ resource "aws_cloudfront_distribution" "video_stream_distribution" {
 }
 
 resource "aws_ssm_parameter" "ssm_cloudfront_distribution" {
-  name  = "/video-stream/cloudfront/distribution"
+  name  = "/video-stream-demo/cloudfront/distribution"
   type  = "String"
-  value = aws_cloudfront_distribution.video_stream_distribution.domain_name
+  value = aws_cloudfront_distribution.video_stream_demo_distribution.domain_name
 }
 
 resource "aws_cloudfront_origin_access_control" "stream_video_distribution_oac" {
