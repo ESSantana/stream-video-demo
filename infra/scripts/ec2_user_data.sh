@@ -16,3 +16,4 @@ docker run -p 80:8080 -d --name stream-video-demo \
     -e VIDEO_BUCKET \
     -e CLOUDFRONT_DIST \
     emersonsantanadev/stream-video-demo:latest
+ 
