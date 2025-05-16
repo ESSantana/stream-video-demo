@@ -19,3 +19,4 @@ func DefaultVideoOptions() VideoOptions {
 		ThumbnailRefTime: "00:00:10",
 	}
 }
+ 
