@@ -6,7 +6,7 @@ type VideoUploadRequest struct {
 }
 
 type VideoUploadResponse struct {
-	PresignedURL string `json:"presigned_url"`
+	UploadURL string `json:"upload_url"`
 }
 
 type ListVideosResponse struct {

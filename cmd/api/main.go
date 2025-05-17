@@ -1,17 +1,16 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
-	"time"
 
-	"github.com/ESSantana/streaming-test/cmd/server/api/controllers"
-	"github.com/ESSantana/streaming-test/cmd/server/jobs/handler"
+	"github.com/ESSantana/streaming-test/internal/routers"
 	"github.com/ESSantana/streaming-test/internal/services"
 	iservices "github.com/ESSantana/streaming-test/internal/services/interfaces"
+	"github.com/ESSantana/streaming-test/internal/storage"
+	istorage "github.com/ESSantana/streaming-test/internal/storage/interfaces"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -22,8 +21,9 @@ import (
 )
 
 var (
-	router       *chi.Mux
-	videoService iservices.VideoService
+	router         *chi.Mux
+	serviceManager iservices.ServiceManager
+	storageManager istorage.StorageManager
 )
 
 func main() {
@@ -43,29 +43,7 @@ func setupRoute() {
 		AllowCredentials: false,
 		MaxAge:           300,
 	}))
-
-	// Health check endpoint
-	router.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		data, err := json.Marshal(map[string]string{"health": "ok", "time": time.Now().Format(time.RFC3339)})
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("error"))
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Write(data)
-	})
-
-	// API endpoints
-	videoController := controllers.NewVideoController(videoService)
-	router.Post("/upload", videoController.CreateS3PresignedPutURL)
-	router.Get("/videos", videoController.ListAvailableVideos)
-
-	// Jobs endpoints
-	// To handle multiple jobs execution, we can create use a larger ec2 instance with more VCPUs
-	// or use a schedule job to consume from a SQS Queue instead of use a SNS Topic
-	videoProcessorHandler := handler.NewVideoProcessorHandler(videoService)
-	router.Post("/video-processor", videoProcessorHandler.ProcessVideo)
+	routers.ConfigureRouter(router, serviceManager)
 }
 
 func startServer(router *chi.Mux) {
@@ -88,5 +66,6 @@ func loadDependencies() {
 	}
 
 	s3Client := s3.New(session, aws.NewConfig().WithRegion("sa-east-1"))
-	videoService = services.NewVideoService(s3Client)
+	storageManager = storage.NewStorageManager(s3Client)
+	serviceManager = services.NewServiceManager(storageManager)
 }
