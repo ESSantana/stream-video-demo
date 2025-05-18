@@ -69,3 +69,4 @@ func loadDependencies() {
 	storageManager = storage.NewStorageManager(s3Client)
 	serviceManager = services.NewServiceManager(storageManager)
 }
+ 
