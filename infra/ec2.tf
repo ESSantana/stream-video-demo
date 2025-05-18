@@ -12,6 +12,7 @@ resource "aws_instance" "stream_video" {
     VIDEO_BUCKET    = aws_s3_bucket.video_stream_demo.id
     STAGE           = var.stage
     SERVER_PORT     = "8080"
+    FOO             = "BAR"
   })}")
   vpc_security_group_ids = [
     aws_security_group.sg_web_access_stream_video.id,
