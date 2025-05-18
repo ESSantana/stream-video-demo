@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/ESSantana/streaming-test/internal/domain/models"
@@ -24,6 +25,9 @@ func newVideoRepository(conn *dynamodb.Client) interfaces.VideoRepository {
 }
 
 func (repo *videoRepository) Save(ctx context.Context, video models.Video) (err error) {
+	fmt.Printf("save data to %s\n", repo.tableName)
+	fmt.Printf("connection established: %v - data: %+v\n", repo.conn != nil, video)
+
 	item, err := attributevalue.MarshalMap(video)
 	if err != nil {
 		return err
