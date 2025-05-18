@@ -4,7 +4,7 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . ./
-RUN CGO_ENABLE=0 GOOS=linux go build -ldflags="-s -w" -o /server ./cmd/server/main.go
+RUN CGO_ENABLE=0 GOOS=linux go build -ldflags="-s -w" -o /api ./cmd/api/main.go
 
 # GET ffmpeg AND MAKE SH AVAILABLE FOR RELEASE STAGE
 FROM busybox:1.37.0-uclibc AS busybox
@@ -18,8 +18,8 @@ WORKDIR /
 COPY --from=busybox /bin/sh /bin/sh
 COPY --from=busybox /bin/ln /bin/ln
 COPY --from=busybox /ffmpeg /usr/local/bin/ffmpeg
-COPY --from=build-stage /server /server
+COPY --from=build-stage /api /api
 EXPOSE 8080
 USER root:root
 RUN ln -s /usr/local/bin/ffmpeg/ffmpeg /usr/bin/ffmpeg
-ENTRYPOINT ["./server"]
+ENTRYPOINT ["./api"]
