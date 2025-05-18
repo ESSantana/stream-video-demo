@@ -38,7 +38,7 @@ func (s *videoService) ProcessVideoWithOptions(ctx context.Context, videoKey str
 		return errors.New("error at retrieve raw video:" + err.Error())
 	}
 
-	_, tmpDirRaw, tmpDirProcessed, err := s.setupProcessEnvironment(videoKey, videoData)
+	videoName, tmpDirRaw, tmpDirProcessed, err := s.setupProcessEnvironment(videoKey, videoData)
 	if err != nil {
 		return errors.New("error at setup environment:" + err.Error())
 	}
@@ -87,7 +87,7 @@ func (s *videoService) ProcessVideoWithOptions(ctx context.Context, videoKey str
 	// TODO: after process video and save segments, save filename in dynamo db
 	// use id, video name and s3 path
 
-	return os.RemoveAll(os.TempDir())
+	return os.RemoveAll(fmt.Sprintf("%s/%s", os.TempDir(), videoName))
 }
 
 // TODO: get it from dynamo db instead of list from s3
@@ -116,26 +116,28 @@ func (s *videoService) ListAvailableVideos(ctx context.Context, bucket string) (
 	return availableVideos, nil
 }
 
-func (s *videoService) setupProcessEnvironment(videoKey string, videoData []byte) (videoName, tmpDirRaw, tmpDirProcessed string, err error) {
+func (s *videoService) setupProcessEnvironment(videoKey string, videoData []byte) (videoName, tempRawVideo, tmpDirProcessed string, err error) {
 	_, videoName = filepath.Split(videoKey)
-	videoName = strings.ReplaceAll(videoName, filepath.Ext(videoName), "")
+	videoExtension := filepath.Ext(videoName)
+	videoName = strings.ReplaceAll(videoName, videoExtension, "")
 
-	tmpDirRaw = fmt.Sprintf("%s/raw/%s", os.TempDir(), videoName)
+	tmpDirRaw := fmt.Sprintf("%s/%s/raw", os.TempDir(), videoName)
 	err = os.MkdirAll(tmpDirRaw, os.ModePerm)
 	if err != nil {
-		return videoName, tmpDirRaw, tmpDirProcessed, err
+		return videoName, tempRawVideo, tmpDirProcessed, err
 	}
 
-	tmpDirProcessed = fmt.Sprintf("%s/processed/%s", os.TempDir(), videoName)
+	tmpDirProcessed = fmt.Sprintf("%s/%s/processed", os.TempDir(), videoName)
 	err = os.MkdirAll(tmpDirProcessed, os.ModePerm)
 	if err != nil {
-		return videoName, tmpDirRaw, tmpDirProcessed, err
+		return videoName, tempRawVideo, tmpDirProcessed, err
 	}
 
-	err = os.WriteFile(tmpDirRaw, videoData, 0666)
+	tempRawVideo = fmt.Sprintf("%s/raw%s", tmpDirRaw, videoExtension)
+	err = os.WriteFile(tempRawVideo, videoData, 0666)
 	if err != nil {
-		return videoName, tmpDirRaw, tmpDirProcessed, err
+		return videoName, tempRawVideo, tmpDirProcessed, err
 	}
 
-	return videoName, tmpDirRaw, tmpDirProcessed, nil
+	return videoName, tempRawVideo, tmpDirProcessed, nil
 }
