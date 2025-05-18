@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -34,12 +35,12 @@ func (s *videoService) UploadRawVideo(ctx context.Context, filename, contentType
 func (s *videoService) ProcessVideoWithOptions(ctx context.Context, videoKey string, options domain.VideoOptions) (err error) {
 	videoData, err := s.storageManager.RetrieveRawVideo(videoKey)
 	if err != nil {
-		return err
+		return errors.New("error at retrieve raw video:" + err.Error())
 	}
 
 	_, tmpDirRaw, tmpDirProcessed, err := s.setupProcessEnvironment(videoKey, videoData)
 	if err != nil {
-		return err
+		return errors.New("error at setup environment:" + err.Error())
 	}
 
 	manifestFilePath := fmt.Sprintf("%s/index.m3u8", tmpDirProcessed)
@@ -65,22 +66,22 @@ func (s *videoService) ProcessVideoWithOptions(ctx context.Context, videoKey str
 
 	err = ffmpeg.MergeOutputs(video, thumbnail).OverWriteOutput().ErrorToStdOut().Run()
 	if err != nil {
-		return err
+		return errors.New("error at process request:" + err.Error())
 	}
 
 	entries, err := os.ReadDir(tmpDirProcessed)
 	if err != nil {
-		return err
+		return errors.New("error at read temp processed dir:" + err.Error())
 	}
 
 	id, err := uuid.NewV7()
 	if err != nil {
-		return err
+		return errors.New("error at create uuid v7:" + err.Error())
 	}
 
 	err = s.storageManager.UploadProcessedVideo(tmpDirProcessed, id.String(), entries)
 	if err != nil {
-		return err
+		return errors.New("error at upload processed video:" + err.Error())
 	}
 
 	// TODO: after process video and save segments, save filename in dynamo db
