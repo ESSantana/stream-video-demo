@@ -13,8 +13,8 @@ type repositoryManager struct {
 	conn *dynamodb.Client
 }
 
-func NewRepositoryManager(ctx context.Context) (manager irepository.RepositoryManager, err error) {
-	conn, err := connectDynamodb(ctx)
+func NewRepositoryManager() (manager irepository.RepositoryManager, err error) {
+	conn, err := connectDynamodb()
 	if err != nil {
 		return nil, err
 	}
@@ -24,9 +24,9 @@ func NewRepositoryManager(ctx context.Context) (manager irepository.RepositoryMa
 	}, nil
 }
 
-func connectDynamodb(ctx context.Context) (conn *dynamodb.Client, err error) {
+func connectDynamodb() (conn *dynamodb.Client, err error) {
 	cfg, err := config.LoadDefaultConfig(
-		ctx,
+		context.TODO(),
 		config.WithRegion("sa-east-1"),
 		config.WithRetryer(func() aws.Retryer {
 			return aws.NopRetryer{}

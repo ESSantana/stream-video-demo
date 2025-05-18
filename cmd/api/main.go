@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"net"
 	"net/http"
@@ -70,7 +69,7 @@ func loadDependencies() {
 	}
 
 	s3Client := s3.New(session, aws.NewConfig().WithRegion("sa-east-1"))
-	repositoryManager, err = repositories.NewRepositoryManager(context.Background())
+	repositoryManager, err = repositories.NewRepositoryManager()
 	if err != nil { 
 		panic(err)
 	}
