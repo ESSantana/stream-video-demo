@@ -16,7 +16,7 @@ type videoRepository struct {
 }
 
 func newVideoRepository(conn *dynamodb.Client) interfaces.VideoRepository {
-	stage := os.Getenv("stage")
+	stage := os.Getenv("STAGE")
 	return &videoRepository{
 		conn:      conn,
 		tableName: "video-stream-demo-" + stage,
