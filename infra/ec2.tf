@@ -7,12 +7,12 @@ locals {
 resource "aws_instance" "stream_video" {
   ami           = "ami-0b5a42ccb0a949cf1" # Replace with another id if you want use another AMI, are not in the sa-east-1 region or it changed
   instance_type = "t2.micro"
-  user_data = templatefile("./scripts/ec2_user_data.sh", {
+  user_data_base64 = base64encode("${templatefile("./scripts/ec2_user_data.sh", {
     CLOUDFRONT_DIST = aws_cloudfront_distribution.video_stream_demo_distribution.domain_name
     VIDEO_BUCKET    = aws_s3_bucket.video_stream_demo.id
     STAGE           = var.stage
     SERVER_PORT     = "8080"
-  })
+  })}")
   vpc_security_group_ids = [
     aws_security_group.sg_web_access_stream_video.id,
     aws_security_group.sg_remove_access_stream_video.id,
