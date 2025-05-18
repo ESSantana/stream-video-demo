@@ -126,3 +126,4 @@ resource "aws_iam_instance_profile" "stream_video_instance_profile" {
   name = "stream-video-instance-profile-${var.aws_region}-${var.stage}"
   role = aws_iam_role.stream_video_role.id
 }
+ 
