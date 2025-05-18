@@ -44,7 +44,7 @@ func (s *videoService) ProcessVideoWithOptions(ctx context.Context, videoKey str
 	}
 
 	manifestFilePath := fmt.Sprintf("%s/index.m3u8", tmpDirProcessed)
-	segmentFilePath := fmt.Sprintf("%s/%s%03d.ts", tmpDirProcessed, options.SegmentPrefix)
+	segmentFilePath := fmt.Sprintf("%s/%s.ts", tmpDirProcessed, options.SegmentPrefix+"%03d")
 
 	video := ffmpeg.Input(tmpDirRaw).Output(manifestFilePath, ffmpeg.KwArgs{
 		"vcodec":               options.VideoEncoder,
