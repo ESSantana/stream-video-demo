@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 
@@ -51,7 +50,7 @@ func (ctrl *VideoController) UploadVideo(w http.ResponseWriter, r *http.Request)
 	}
 
 	data := dto.VideoUploadResponse{
-		UploadURL: url.QueryEscape(uploadURL),
+		UploadURL: uploadURL,
 	}
 	res, err := json.Marshal(data)
 	if err != nil {
