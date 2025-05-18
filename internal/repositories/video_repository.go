@@ -7,6 +7,7 @@ import (
 
 	"github.com/ESSantana/streaming-test/internal/domain/models"
 	"github.com/ESSantana/streaming-test/internal/repositories/interfaces"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
@@ -33,7 +34,7 @@ func (repo *videoRepository) Save(ctx context.Context, video models.Video) (err 
 		return err
 	}
 	putRequest := &dynamodb.PutItemInput{
-		TableName: &repo.tableName,
+		TableName: aws.String(repo.tableName),
 		Item:      item,
 	}
 
@@ -43,7 +44,7 @@ func (repo *videoRepository) Save(ctx context.Context, video models.Video) (err 
 
 func (repo *videoRepository) ListAvailableVideos(ctx context.Context) (videos []models.Video, err error) {
 	scanRequest := &dynamodb.ScanInput{
-		TableName: &repo.tableName,
+		TableName: aws.String(repo.tableName),
 	}
 
 	for {
