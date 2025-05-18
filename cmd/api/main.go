@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
 
+	"github.com/ESSantana/streaming-test/internal/repositories"
+	irepository "github.com/ESSantana/streaming-test/internal/repositories/interfaces"
 	"github.com/ESSantana/streaming-test/internal/routers"
 	"github.com/ESSantana/streaming-test/internal/services"
 	iservices "github.com/ESSantana/streaming-test/internal/services/interfaces"
@@ -22,6 +25,7 @@ import (
 
 var (
 	router         *chi.Mux
+	repositoryManager irepository.RepositoryManager
 	serviceManager iservices.ServiceManager
 	storageManager istorage.StorageManager
 )
@@ -66,7 +70,11 @@ func loadDependencies() {
 	}
 
 	s3Client := s3.New(session, aws.NewConfig().WithRegion("sa-east-1"))
+	repositoryManager, err = repositories.NewRepositoryManager(context.Background())
+	if err != nil { 
+		panic(err)
+	}
 	storageManager = storage.NewStorageManager(s3Client)
-	serviceManager = services.NewServiceManager(storageManager)
+	serviceManager = services.NewServiceManager(storageManager, repositoryManager)
 }
  

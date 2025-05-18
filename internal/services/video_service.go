@@ -7,24 +7,27 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/ESSantana/streaming-test/internal/domain"
+	"github.com/ESSantana/streaming-test/internal/domain/models"
+	irepository "github.com/ESSantana/streaming-test/internal/repositories/interfaces"
 	iservice "github.com/ESSantana/streaming-test/internal/services/interfaces"
 	istorage "github.com/ESSantana/streaming-test/internal/storage/interfaces"
 	"github.com/google/uuid"
-
-	// "github.com/rs/zerolog/log"
 
 	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
 
 type videoService struct {
-	storageManager istorage.StorageManager
+	storageManager    istorage.StorageManager
+	repositoryManager irepository.RepositoryManager
 }
 
-func newVideoService(storageManager istorage.StorageManager) iservice.VideoService {
+func newVideoService(storageManager istorage.StorageManager, repositoryManager irepository.RepositoryManager) iservice.VideoService {
 	return &videoService{
-		storageManager: storageManager,
+		storageManager:    storageManager,
+		repositoryManager: repositoryManager,
 	}
 }
 
@@ -35,12 +38,12 @@ func (s *videoService) UploadRawVideo(ctx context.Context, filename, contentType
 func (s *videoService) ProcessVideoWithOptions(ctx context.Context, videoKey string, options domain.VideoOptions) (err error) {
 	videoData, err := s.storageManager.RetrieveRawVideo(videoKey)
 	if err != nil {
-		return errors.New("error at retrieve raw video:" + err.Error())
+		return errors.New("error at retrieve raw video: " + err.Error())
 	}
 
 	videoName, tmpDirRaw, tmpDirProcessed, err := s.setupProcessEnvironment(videoKey, videoData)
 	if err != nil {
-		return errors.New("error at setup environment:" + err.Error())
+		return errors.New("error at setup environment: " + err.Error())
 	}
 
 	manifestFilePath := fmt.Sprintf("%s/index.m3u8", tmpDirProcessed)
@@ -66,12 +69,12 @@ func (s *videoService) ProcessVideoWithOptions(ctx context.Context, videoKey str
 
 	err = ffmpeg.MergeOutputs(video, thumbnail).OverWriteOutput().ErrorToStdOut().Run()
 	if err != nil {
-		return errors.New("error at process request:" + err.Error())
+		return errors.New("error at process request: " + err.Error())
 	}
 
 	entries, err := os.ReadDir(tmpDirProcessed)
 	if err != nil {
-		return errors.New("error at read temp processed dir:" + err.Error())
+		return errors.New("error at read temp processed dir: " + err.Error())
 	}
 
 	id, err := uuid.NewV7()
@@ -81,39 +84,30 @@ func (s *videoService) ProcessVideoWithOptions(ctx context.Context, videoKey str
 
 	err = s.storageManager.UploadProcessedVideo(tmpDirProcessed, id.String(), entries)
 	if err != nil {
-		return errors.New("error at upload processed video:" + err.Error())
+		return errors.New("error at upload processed video: " + err.Error())
 	}
 
-	// TODO: after process video and save segments, save filename in dynamo db
-	// use id, video name and s3 path
+	videoRepository := s.repositoryManager.NewVideoRepository()
+	err = videoRepository.SaveBatch(ctx, []models.Video{
+		{
+			VideoId:   id.String(),
+			VideoName: videoName,
+			Manifest:  fmt.Sprintf("processed/%s/index.m3u8", id.String()),
+			Thumbnail: fmt.Sprintf("processed/%s/thumbnail.jpg", id.String()),
+			CreatedAt: uint64(time.Now().Unix()),
+		},
+	})
+
+	if err != nil {
+		return errors.New("error at video repository save batch: " + err.Error())
+	}
 
 	return os.RemoveAll(fmt.Sprintf("%s/%s", os.TempDir(), videoName))
 }
 
-// TODO: get it from dynamo db instead of list from s3
-func (s *videoService) ListAvailableVideos(ctx context.Context, bucket string) (availableVideos []string, err error) {
-	// out, err := s.s3Client.ListObjects(
-	// 	&s3.ListObjectsInput{
-	// 		Bucket: aws.String(bucket),
-	// 		Prefix: aws.String("processed/"),
-	// 	},
-	// )
-
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// availableVideos = make([]string, 0)
-	// for _, content := range out.Contents {
-	// 	if !strings.HasSuffix(*content.Key, ".m3u8") {
-	// 		continue
-	// 	}
-	// 	videoName := strings.ReplaceAll(*content.Key, "/index.m3u8", "")
-	// 	videoDistributionURL := "https://" + os.Getenv("CLOUDFRONT_DIST") + "/" + videoName
-	// 	availableVideos = append(availableVideos, videoDistributionURL)
-	// }
-
-	return availableVideos, nil
+func (s *videoService) ListAvailableVideos(ctx context.Context) (availableVideos []models.Video, err error) {
+	videoRepository := s.repositoryManager.NewVideoRepository()
+	return videoRepository.ListAvailableVideos(ctx)
 }
 
 func (s *videoService) setupProcessEnvironment(videoKey string, videoData []byte) (videoName, tempRawVideo, tmpDirProcessed string, err error) {

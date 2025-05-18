@@ -1,19 +1,24 @@
 data "aws_caller_identity" "current" {}
 
 locals {
-    account_id = data.aws_caller_identity.current.account_id
+  account_id = data.aws_caller_identity.current.account_id
 }
 
 resource "aws_instance" "stream_video" {
-  ami                     = "ami-0b5a42ccb0a949cf1" # Replace with another id if you want use another AMI, are not in the sa-east-1 region or it changed
-  instance_type           = "t2.micro"
-  user_data = file("./scripts/ec2_user_data.sh")
-  vpc_security_group_ids  = [
+  ami           = "ami-0b5a42ccb0a949cf1" # Replace with another id if you want use another AMI, are not in the sa-east-1 region or it changed
+  instance_type = "t2.micro"
+  user_data = templatefile("./scripts/ec2_user_data.sh", {
+    CLOUDFRONT_DIST = aws_cloudfront_distribution.video_stream_demo_distribution.domain_name
+    VIDEO_BUCKET    = aws_s3_bucket.video_stream_demo.id
+    STAGE           = var.stage
+    SERVER_PORT     = "8080"
+  })
+  vpc_security_group_ids = [
     aws_security_group.sg_web_access_stream_video.id,
     aws_security_group.sg_remove_access_stream_video.id,
   ]
-  key_name                = "aws-emerson-sa-east-1" # Replace with another key
-  iam_instance_profile    = aws_iam_instance_profile.stream_video_instance_profile.id
+  key_name             = "aws-emerson-sa-east-1" # Replace with another key
+  iam_instance_profile = aws_iam_instance_profile.stream_video_instance_profile.id
 
   tags = {
     Name = "stream-video-${var.aws_region}-${var.stage}"
@@ -65,7 +70,7 @@ data "aws_iam_policy_document" "stream_video_assume_role_policy" {
 }
 
 resource "aws_iam_role" "stream_video_role" {
-  name = "stream-video-role-${var.aws_region}-${var.stage}"
+  name               = "stream-video-role-${var.aws_region}-${var.stage}"
   assume_role_policy = data.aws_iam_policy_document.stream_video_assume_role_policy.json
 }
 
@@ -75,7 +80,7 @@ data "aws_iam_policy_document" "stream_video_permissions_policy_document" {
 
     actions = [
       "s3:GetObject",
-      "s3:PutObject", 
+      "s3:PutObject",
       "s3:ListBucket"
     ]
 
@@ -112,7 +117,7 @@ resource "aws_iam_policy" "stream_video_permissions_policy" {
 }
 
 resource "aws_iam_role_policy_attachment" "stream_video_role_attachment" {
-  role = aws_iam_role.stream_video_role.id
+  role       = aws_iam_role.stream_video_role.id
   policy_arn = aws_iam_policy.stream_video_permissions_policy.arn
 }
 

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/ESSantana/streaming-test/internal/domain"
@@ -65,7 +64,7 @@ func (ctrl *VideoController) UploadVideo(w http.ResponseWriter, r *http.Request)
 func (ctrl *VideoController) ListAvailableVideos(w http.ResponseWriter, r *http.Request) {
 	videoService := ctrl.serviceManager.NewVideoService()
 
-	availableVideos, err := videoService.ListAvailableVideos(r.Context(), os.Getenv("VIDEO_BUCKET"))
+	availableVideos, err := videoService.ListAvailableVideos(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -116,7 +115,7 @@ func (ctrl *VideoController) ProcessRawVideo(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if len(s3Events.Records) < 1 { 
+	if len(s3Events.Records) < 1 {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Any video to process"))
 	}

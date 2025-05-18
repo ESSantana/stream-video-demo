@@ -1,5 +1,7 @@
 package dto
 
+import "github.com/ESSantana/streaming-test/internal/domain/models"
+
 type VideoUploadRequest struct {
 	Filename    string `json:"filename"`
 	ContentType string `json:"content_type"`
@@ -10,7 +12,7 @@ type VideoUploadResponse struct {
 }
 
 type ListVideosResponse struct {
-	Videos []string `json:"videos"`
+	Videos []models.Video `json:"videos"`
 }
 
 type VideoDistributionResponse struct {
