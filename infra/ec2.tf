@@ -4,15 +4,30 @@ locals {
   account_id = data.aws_caller_identity.current.account_id
 }
 
+data "aws_ami" "amazon_al2023" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["al2023-ami-2023*-x86_64"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["137112412989"] # AMAZON
+}
+
 resource "aws_instance" "stream_video" {
-  ami           = "ami-0b5a42ccb0a949cf1" # Replace with another id if you want use another AMI, are not in the sa-east-1 region or it changed
+  ami           = data.aws_ami.amazon_al2023.id
   instance_type = "t2.micro"
   user_data_base64 = base64encode("${templatefile("./scripts/ec2_user_data.sh", {
     CLOUDFRONT_DIST = aws_cloudfront_distribution.video_stream_demo_distribution.domain_name
     VIDEO_BUCKET    = aws_s3_bucket.video_stream_demo.id
     STAGE           = var.stage
     SERVER_PORT     = "8080"
-    FOO             = "BAR"
   })}")
   vpc_security_group_ids = [
     aws_security_group.sg_web_access_stream_video.id,

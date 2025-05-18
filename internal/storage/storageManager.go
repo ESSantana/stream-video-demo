@@ -8,6 +8,7 @@ import (
 
 	istorage "github.com/ESSantana/streaming-test/internal/storage/interfaces"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
@@ -16,11 +17,17 @@ type storageManager struct {
 	bucket string
 }
 
-func NewStorageManager(client *s3.S3) istorage.StorageManager {
+func NewStorageManager() (istorage.StorageManager, error) {
+	session, err := session.NewSession()
+	if err != nil {
+		return nil, err
+	}
+	client := s3.New(session, aws.NewConfig().WithRegion("sa-east-1"))
+
 	return &storageManager{
 		client: client,
 		bucket: os.Getenv("VIDEO_BUCKET"),
-	}
+	}, nil
 }
 
 func (s *storageManager) UploadRawVideo(filename, contentType string) (uploadURL string, err error) {

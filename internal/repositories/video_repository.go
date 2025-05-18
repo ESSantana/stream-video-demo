@@ -20,7 +20,7 @@ func newVideoRepository(conn *dynamodb.Client) interfaces.VideoRepository {
 	stage := os.Getenv("STAGE")
 	return &videoRepository{
 		conn:      conn,
-		tableName: "video-stream-demo-" + stage,
+		tableName: fmt.Sprintf("video-stream-demo-%s", stage),
 	}
 }
 

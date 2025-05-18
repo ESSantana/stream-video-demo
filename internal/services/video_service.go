@@ -88,7 +88,7 @@ func (s *videoService) ProcessVideoWithOptions(ctx context.Context, videoKey str
 	}
 
 	videoRepository := s.repositoryManager.NewVideoRepository()
-	ctxTimeout, cancel:= context.WithTimeout(ctx, time.Second *10)
+	ctxTimeout, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 	err = videoRepository.Save(ctxTimeout, models.Video{
 		VideoId:   id.String(),

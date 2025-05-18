@@ -13,7 +13,7 @@ data "aws_iam_policy_document" "upload_notification_topic_policy" {
       identifiers = ["s3.amazonaws.com"]
     }
 
-    actions   = [
+    actions = [
       "sns:Publish"
     ]
     resources = ["arn:aws:sns:${var.aws_region}:${local.account_id}:upload-notification-${var.aws_region}-${var.stage}"]
@@ -36,4 +36,8 @@ resource "aws_sns_topic_subscription" "upload_notification_topic_server_subscrip
   topic_arn = aws_sns_topic.upload_notification_topic.arn
   protocol  = "http"
   endpoint  = "http://${aws_instance.stream_video.public_dns}/video-processor"
+
+  depends_on = [
+    aws_instance.stream_video
+  ]
 }

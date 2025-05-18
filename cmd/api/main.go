@@ -13,9 +13,6 @@ import (
 	iservices "github.com/ESSantana/streaming-test/internal/services/interfaces"
 	"github.com/ESSantana/streaming-test/internal/storage"
 	istorage "github.com/ESSantana/streaming-test/internal/storage/interfaces"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -23,10 +20,10 @@ import (
 )
 
 var (
-	router         *chi.Mux
+	router            *chi.Mux
 	repositoryManager irepository.RepositoryManager
-	serviceManager iservices.ServiceManager
-	storageManager istorage.StorageManager
+	serviceManager    iservices.ServiceManager
+	storageManager    istorage.StorageManager
 )
 
 func main() {
@@ -63,17 +60,14 @@ func startServer(router *chi.Mux) {
 func loadDependencies() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 
-	session, err := session.NewSession()
+	var err error
+	repositoryManager, err = repositories.NewRepositoryManager()
 	if err != nil {
 		panic(err)
 	}
-
-	s3Client := s3.New(session, aws.NewConfig().WithRegion("sa-east-1"))
-	repositoryManager, err = repositories.NewRepositoryManager()
-	if err != nil { 
+	storageManager, err = storage.NewStorageManager()
+	if err != nil {
 		panic(err)
 	}
-	storageManager = storage.NewStorageManager(s3Client)
 	serviceManager = services.NewServiceManager(storageManager, repositoryManager)
 }
- 
