@@ -10,47 +10,42 @@ import (
 	"github.com/ESSantana/streaming-test/internal/domain"
 	iservice "github.com/ESSantana/streaming-test/internal/services/interfaces"
 	istorage "github.com/ESSantana/streaming-test/internal/storage/interfaces"
+	"github.com/google/uuid"
+
 	// "github.com/rs/zerolog/log"
 
 	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
 
 type videoService struct {
-	storage istorage.StorageManager
+	storageManager istorage.StorageManager
 }
 
-func newVideoService(storage istorage.StorageManager) iservice.VideoService {
+func newVideoService(storageManager istorage.StorageManager) iservice.VideoService {
 	return &videoService{
-		storage: storage,
+		storageManager: storageManager,
 	}
 }
 
-func (s *videoService) CreateS3PresignedPutURL(ctx context.Context, filename, contentType string) (presignedURL string, err error) {
-	return s.storage.UploadRawVideo(filename, contentType)
+func (s *videoService) UploadRawVideo(ctx context.Context, filename, contentType string) (presignedURL string, err error) {
+	return s.storageManager.UploadRawVideo(filename, contentType)
 }
 
-// TODO: after process video and save segments, save filename in dynamo db
 func (s *videoService) ProcessVideoWithOptions(ctx context.Context, videoKey string, options domain.VideoOptions) (err error) {
-	videoData, err := s.storage.RetrieveRawVideo(videoKey)
+	videoData, err := s.storageManager.RetrieveRawVideo(videoKey)
 	if err != nil {
 		return err
 	}
 
-	videoName, rawTmpDir, processedTmpDir, err := s.setupProcessEnvironment(videoKey)
+	_, tmpDirRaw, tmpDirProcessed, err := s.setupProcessEnvironment(videoKey, videoData)
 	if err != nil {
 		return err
 	}
 
-	tempFilePath := fmt.Sprintf("%s/%s", rawTmpDir, videoName)
-	err = os.WriteFile(tempFilePath, videoData, 0666)
-	if err != nil {
-		return err
-	}
+	manifestFilePath := fmt.Sprintf("%s/index.m3u8", tmpDirProcessed)
+	segmentFilePath := fmt.Sprintf("%s/%s%03d.ts", tmpDirProcessed, options.SegmentPrefix)
 
-	manifestFilePath := processedTmpDir + "index.m3u8"
-	segmentFilePath := processedTmpDir + options.SegmentPrefix + "%03d.ts"
-
-	video := ffmpeg.Input(tempFilePath).Output(manifestFilePath, ffmpeg.KwArgs{
+	video := ffmpeg.Input(tmpDirRaw).Output(manifestFilePath, ffmpeg.KwArgs{
 		"vcodec":               options.VideoEncoder,
 		"acodec":               options.AudioEncoder,
 		"codec":                "copy",
@@ -61,24 +56,37 @@ func (s *videoService) ProcessVideoWithOptions(ctx context.Context, videoKey str
 		"hls_list_size":        0,
 	})
 
-	thumbnail := ffmpeg.Input(tempFilePath).Output(processedTmpDir+"thumbnail.jpg", ffmpeg.KwArgs{
-		"ss":       options.ThumbnailRefTime,
-		"frames:v": "1",
-	})
+	thumbnail := ffmpeg.Input(tmpDirRaw).Output(fmt.Sprintf("%s/thumbnail.jpg", tmpDirProcessed),
+		ffmpeg.KwArgs{
+			"ss":       options.ThumbnailRefTime,
+			"frames:v": "1",
+		},
+	)
 
-	ffmpeg.MergeOutputs(video, thumbnail).OverWriteOutput().ErrorToStdOut().Run()
-
-	entries, err := os.ReadDir(processedTmpDir)
+	err = ffmpeg.MergeOutputs(video, thumbnail).OverWriteOutput().ErrorToStdOut().Run()
 	if err != nil {
 		return err
 	}
 
-	err = s.storage.UploadProcessedVideo(processedTmpDir, videoName, entries)
+	entries, err := os.ReadDir(tmpDirProcessed)
 	if err != nil {
 		return err
 	}
 
-	return s.cleanupProcessEnvironment([]string{rawTmpDir, processedTmpDir})
+	id, err := uuid.NewV7()
+	if err != nil {
+		return err
+	}
+
+	err = s.storageManager.UploadProcessedVideo(tmpDirProcessed, id.String(), entries)
+	if err != nil {
+		return err
+	}
+
+	// TODO: after process video and save segments, save filename in dynamo db
+	// use id, video name and s3 path
+
+	return os.RemoveAll(os.TempDir())
 }
 
 // TODO: get it from dynamo db instead of list from s3
@@ -107,31 +115,26 @@ func (s *videoService) ListAvailableVideos(ctx context.Context, bucket string) (
 	return availableVideos, nil
 }
 
-func (s *videoService) setupProcessEnvironment(videoKey string) (videoName, rawTempDir, processedTempDir string, err error) {
+func (s *videoService) setupProcessEnvironment(videoKey string, videoData []byte) (videoName, tmpDirRaw, tmpDirProcessed string, err error) {
 	_, videoName = filepath.Split(videoKey)
 	videoName = strings.ReplaceAll(videoName, filepath.Ext(videoName), "")
 
-	tmpDirRaw := fmt.Sprintf("%s/raw", os.TempDir())
+	tmpDirRaw = fmt.Sprintf("%s/raw/%s", os.TempDir(), videoName)
 	err = os.MkdirAll(tmpDirRaw, os.ModePerm)
 	if err != nil {
-		return videoName, rawTempDir, processedTempDir, err
+		return videoName, tmpDirRaw, tmpDirProcessed, err
 	}
 
-	tmpDirProcessed := fmt.Sprintf("%s/processed/%s/", os.TempDir(), videoName)
+	tmpDirProcessed = fmt.Sprintf("%s/processed/%s", os.TempDir(), videoName)
 	err = os.MkdirAll(tmpDirProcessed, os.ModePerm)
 	if err != nil {
-		return videoName, rawTempDir, processedTempDir, err
+		return videoName, tmpDirRaw, tmpDirProcessed, err
 	}
 
-	return videoName, rawTempDir, processedTempDir, nil
-}
-
-func (s *videoService) cleanupProcessEnvironment(paths []string) (err error) {
-	for _, p := range paths {
-		err = os.RemoveAll(p)
-		if err != nil {
-			return err
-		}
+	err = os.WriteFile(tmpDirRaw, videoData, 0666)
+	if err != nil {
+		return videoName, tmpDirRaw, tmpDirProcessed, err
 	}
-	return nil
+
+	return videoName, tmpDirRaw, tmpDirProcessed, nil
 }

@@ -9,7 +9,7 @@ import (
 func configureVideoRoutes(router *chi.Mux, serviceManager iservice.ServiceManager) {
 	videoController := controllers.NewVideoController(serviceManager)
 
-	router.Post("/upload", videoController.CreateS3PresignedPutURL)
-	router.Post("/video-processor", videoController.ProcessVideo)
-	router.Get("/videos", videoController.ListAvailableVideos)
+	router.Post("/video", videoController.UploadVideo)
+	router.Get("/video", videoController.ListAvailableVideos)
+	router.Post("/video-processor", videoController.ProcessRawVideo)
 }

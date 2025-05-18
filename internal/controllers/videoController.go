@@ -1,14 +1,12 @@
 package controllers
 
 import (
-	"context"
 	"encoding/json"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/ESSantana/streaming-test/internal/domain"
 	iservice "github.com/ESSantana/streaming-test/internal/services/interfaces"
@@ -22,22 +20,15 @@ import (
 
 type VideoController struct {
 	serviceManager iservice.ServiceManager
-	defaultClient  *http.Client
 }
 
 func NewVideoController(serviceManager iservice.ServiceManager) *VideoController {
-	//TODO: receive as dependency
-	httpClient := http.Client{
-		Timeout: time.Second * 5,
-	}
 	return &VideoController{
 		serviceManager: serviceManager,
-		defaultClient:  &httpClient,
 	}
 }
 
-// TODO: Update name to be tech agnostic
-func (ctrl *VideoController) CreateS3PresignedPutURL(w http.ResponseWriter, r *http.Request) {
+func (ctrl *VideoController) UploadVideo(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -53,8 +44,7 @@ func (ctrl *VideoController) CreateS3PresignedPutURL(w http.ResponseWriter, r *h
 
 	videoService := ctrl.serviceManager.NewVideoService()
 
-	//TODO: Remove bucket name dependency
-	uploadURL, err := videoService.CreateS3PresignedPutURL(r.Context(), videoUploadRequest.Filename, videoUploadRequest.ContentType)
+	uploadURL, err := videoService.UploadRawVideo(r.Context(), videoUploadRequest.Filename, videoUploadRequest.ContentType)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -75,7 +65,7 @@ func (ctrl *VideoController) CreateS3PresignedPutURL(w http.ResponseWriter, r *h
 
 func (ctrl *VideoController) ListAvailableVideos(w http.ResponseWriter, r *http.Request) {
 	videoService := ctrl.serviceManager.NewVideoService()
-	//TODO: Remove bucket name dependency
+
 	availableVideos, err := videoService.ListAvailableVideos(r.Context(), os.Getenv("VIDEO_BUCKET"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -100,8 +90,7 @@ func (ctrl *VideoController) ListAvailableVideos(w http.ResponseWriter, r *http.
 	w.Write(res)
 }
 
-// TODO: Update name to be more descritive
-func (ctrl *VideoController) ProcessVideo(w http.ResponseWriter, r *http.Request) {
+func (ctrl *VideoController) ProcessRawVideo(w http.ResponseWriter, r *http.Request) {
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -128,25 +117,24 @@ func (ctrl *VideoController) ProcessVideo(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	for _, record := range s3Events.Records {
-		go ctrl.createProcessingRoutine(r.Context(), record.S3.Object.Key)
+	if len(s3Events.Records) < 1 { 
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Any video to process"))
 	}
+
+	videoService := ctrl.serviceManager.NewVideoService()
+	videoKey := s3Events.Records[0].S3.Object.Key
+	go func() {
+		err := videoService.ProcessVideoWithOptions(r.Context(), videoKey, domain.DefaultVideoOptions())
+		if err != nil {
+			log.Error().Msg(err.Error())
+		}
+	}()
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Processing video"))
 }
 
-// TODO: Move it to another place
-func (ctrl *VideoController) createProcessingRoutine(ctx context.Context, videoKey string) {
-	videoService := ctrl.serviceManager.NewVideoService()
-	//TODO: Remove bucket name dependency
-	err := videoService.ProcessVideoWithOptions(ctx, videoKey, domain.DefaultVideoOptions())
-	if err != nil {
-		log.Error().Msg(err.Error())
-	}
-}
-
-// TODO: Move it to another place
 func (ctrl *VideoController) confirmSNSSubscription(data []byte) {
 	var subscriptionInput sns.ConfirmSubscriptionInput
 	err := json.Unmarshal(data, &subscriptionInput)

@@ -10,7 +10,6 @@ import (
 )
 
 func ConfigureRouter(router *chi.Mux, serviceManager iservice.ServiceManager) {
-	
 	router.Get("/health-check", func(w http.ResponseWriter, r *http.Request) {
 		data, err := json.Marshal(map[string]string{"health": "ok", "time": time.Now().Format(time.RFC3339)})
 		if err != nil {
