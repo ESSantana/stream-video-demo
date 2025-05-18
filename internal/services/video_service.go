@@ -88,14 +88,12 @@ func (s *videoService) ProcessVideoWithOptions(ctx context.Context, videoKey str
 	}
 
 	videoRepository := s.repositoryManager.NewVideoRepository()
-	err = videoRepository.SaveBatch(ctx, []models.Video{
-		{
-			VideoId:   id.String(),
-			VideoName: videoName,
-			Manifest:  fmt.Sprintf("processed/%s/index.m3u8", id.String()),
-			Thumbnail: fmt.Sprintf("processed/%s/thumbnail.jpg", id.String()),
-			CreatedAt: uint64(time.Now().Unix()),
-		},
+	err = videoRepository.Save(ctx, models.Video{
+		VideoId:   id.String(),
+		VideoName: videoName,
+		Manifest:  fmt.Sprintf("processed/%s/index.m3u8", id.String()),
+		Thumbnail: fmt.Sprintf("processed/%s/thumbnail.jpg", id.String()),
+		CreatedAt: uint64(time.Now().Unix()),
 	})
 
 	if err != nil {

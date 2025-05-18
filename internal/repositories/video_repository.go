@@ -3,13 +3,11 @@ package repositories
 import (
 	"context"
 	"os"
-	"slices"
 
 	"github.com/ESSantana/streaming-test/internal/domain/models"
 	"github.com/ESSantana/streaming-test/internal/repositories/interfaces"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
 type videoRepository struct {
@@ -25,60 +23,18 @@ func newVideoRepository(conn *dynamodb.Client) interfaces.VideoRepository {
 	}
 }
 
-func (repo *videoRepository) SaveBatch(ctx context.Context, videos []models.Video) (err error) {
-
-	var writeRequestBatches [][]types.WriteRequest
-
-	for chunk := range slices.Chunk(videos, 25) {
-		var writeRequest []types.WriteRequest
-		for _, video := range chunk {
-			item, err := attributevalue.MarshalMap(video)
-			if err != nil {
-				return nil
-			}
-			writeRequest = append(writeRequest, types.WriteRequest{
-				PutRequest: &types.PutRequest{
-					Item: item,
-				},
-			})
-		}
-		writeRequestBatches = append(writeRequestBatches, writeRequest)
+func (repo *videoRepository) Save(ctx context.Context, video models.Video) (err error) {
+	item, err := attributevalue.MarshalMap(video)
+	if err != nil {
+		return err
+	}
+	putRequest := &dynamodb.PutItemInput{
+		TableName: &repo.tableName,
+		Item:      item,
 	}
 
-	for _, batch := range writeRequestBatches {
-		output, err := repo.conn.BatchWriteItem(ctx, &dynamodb.BatchWriteItemInput{
-			RequestItems: map[string][]types.WriteRequest{
-				repo.tableName: batch,
-			},
-		})
-		if err != nil {
-			return err
-		}
-
-		if len(output.UnprocessedItems[repo.tableName]) > 0 {
-			err := repo.reprocessItem(ctx, output.UnprocessedItems[repo.tableName])
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-func (repo *videoRepository) reprocessItem(ctx context.Context, items []types.WriteRequest) (err error) {
-	for _, item := range items {
-		putRequest := &dynamodb.PutItemInput{
-			TableName: &repo.tableName,
-			Item:      item.PutRequest.Item,
-		}
-
-		_, err := repo.conn.PutItem(ctx, putRequest)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	_, err = repo.conn.PutItem(ctx, putRequest)
+	return err
 }
 
 func (repo *videoRepository) ListAvailableVideos(ctx context.Context) (videos []models.Video, err error) {

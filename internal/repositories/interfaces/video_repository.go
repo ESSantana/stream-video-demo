@@ -6,7 +6,7 @@ import (
 	"github.com/ESSantana/streaming-test/internal/domain/models"
 )
 
-type VideoRepository interface{
-	SaveBatch(ctx context.Context, videos []models.Video) (err error)
-	ListAvailableVideos(ctx context.Context) (videos []models.Video, err error) 
+type VideoRepository interface {
+	Save(ctx context.Context, video models.Video) (err error)
+	ListAvailableVideos(ctx context.Context) (videos []models.Video, err error)
 }
