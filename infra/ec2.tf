@@ -110,6 +110,18 @@ data "aws_iam_policy_document" "stream_video_permissions_policy_document" {
 
     resources = ["*"]
   }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "dynamodb:Scan",
+      "dynamodb:PutItem"
+    ]
+
+    resources = ["*"]
+  }
+
 }
 
 resource "aws_iam_policy" "stream_video_permissions_policy" {
@@ -126,4 +138,4 @@ resource "aws_iam_instance_profile" "stream_video_instance_profile" {
   name = "stream-video-instance-profile-${var.aws_region}-${var.stage}"
   role = aws_iam_role.stream_video_role.id
 }
- 
+
