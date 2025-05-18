@@ -26,6 +26,26 @@ resource "aws_instance" "stream_video" {
   }
 }
 
+data "aws_vpc" "selected" {
+  default = true
+}
+
+data "aws_route_tables" "selected" {
+  vpc_id = data.aws_vpc.selected.id
+}
+
+resource "aws_vpc_endpoint" "dynamodb" {
+  vpc_id            = data.aws_vpc.selected.id
+  service_name      = "com.amazonaws.sa-east-1.dynamodb"
+  vpc_endpoint_type = "Gateway"
+
+  route_table_ids = data.aws_route_tables.selected.ids
+
+  tags = {
+    Name = "dynamodb-endpoint"
+  }
+}
+
 resource "aws_security_group" "sg_web_access_stream_video" {
   name        = "web-access-stream-video"
   description = "Security group to allow access to the web server from internet"
