@@ -40,7 +40,7 @@ func (s *storageManager) UploadRawVideo(filename, contentType string) (uploadURL
 
 func (s *storageManager) UploadProcessedVideo(basePath, videoID string, processedFiles []os.DirEntry) (err error) {
 	for _, processedFile := range processedFiles {
-		tempFilePath := basePath + processedFile.Name()
+		tempFilePath := fmt.Sprintf("%s/%s", basePath, processedFile.Name())
 
 		data, err := os.OpenFile(tempFilePath, os.O_RDWR, 0666)
 		if err != nil {
