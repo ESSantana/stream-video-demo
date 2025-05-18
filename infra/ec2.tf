@@ -150,11 +150,10 @@ data "aws_iam_policy_document" "stream_video_permissions_policy_document" {
     effect = "Allow"
 
     actions = [
-      "dynamodb:Scan",
-      "dynamodb:PutItem"
+      "dynamodb:*"
     ]
 
-    resources = ["*"]
+    resources = [aws_dynamodb_table.video_stream_table.arn]
   }
 
 }

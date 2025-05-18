@@ -1,4 +1,4 @@
-resource "aws_dynamodb_table" "basic-dynamodb-table" {
+resource "aws_dynamodb_table" "video_stream_table" {
   name           = "video-stream-demo-${var.stage}"
   billing_mode   = "PROVISIONED"
   read_capacity  = 20
