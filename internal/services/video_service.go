@@ -88,7 +88,8 @@ func (s *videoService) ProcessVideoWithOptions(ctx context.Context, videoKey str
 	}
 
 	videoRepository := s.repositoryManager.NewVideoRepository()
-	err = videoRepository.Save(ctx, models.Video{
+	// Create a new context because this runs in other go routine and does not have request context anymore
+	err = videoRepository.Save(context.Background(), models.Video{
 		VideoId:   id.String(),
 		VideoName: videoName,
 		Manifest:  fmt.Sprintf("processed/%s/index.m3u8", id.String()),
