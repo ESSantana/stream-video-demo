@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -123,7 +124,8 @@ func (ctrl *VideoController) ProcessRawVideo(w http.ResponseWriter, r *http.Requ
 	videoService := ctrl.serviceManager.NewVideoService()
 	videoKey := s3Events.Records[0].S3.Object.Key
 	go func() {
-		err := videoService.ProcessVideoWithOptions(r.Context(), videoKey, domain.DefaultVideoOptions())
+		// Create a new context because this runs in other go routine and request will be closed soon
+		err := videoService.ProcessVideoWithOptions(context.Background(), videoKey, domain.DefaultVideoOptions())
 		if err != nil {
 			log.Error().Msg(err.Error())
 		}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/ESSantana/streaming-test/internal/domain/models"
 	"github.com/ESSantana/streaming-test/internal/repositories/interfaces"
@@ -27,10 +26,6 @@ func newVideoRepository(conn *dynamodb.Client) interfaces.VideoRepository {
 }
 
 func (repo *videoRepository) Save(ctx context.Context, video models.Video) (err error) {
-	start := time.Now()
-	fmt.Printf("save data to %s\n", repo.tableName)
-	fmt.Printf("connection established: %v - data: %+v\n", repo.conn != nil, video)
-
 	item, err := attributevalue.MarshalMap(video)
 	if err != nil {
 		return err
@@ -41,7 +36,6 @@ func (repo *videoRepository) Save(ctx context.Context, video models.Video) (err 
 	}
 
 	_, err = repo.conn.PutItem(ctx, putRequest)
-	fmt.Printf("time elapssed: %v\n", time.Since(start).Milliseconds())
 	return err
 }
 
