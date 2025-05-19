@@ -88,9 +88,7 @@ func (s *videoService) ProcessVideoWithOptions(ctx context.Context, videoKey str
 	}
 
 	videoRepository := s.repositoryManager.NewVideoRepository()
-	ctxTimeout, cancel := context.WithTimeout(ctx, time.Second*10)
-	defer cancel()
-	err = videoRepository.Save(ctxTimeout, models.Video{
+	err = videoRepository.Save(ctx, models.Video{
 		VideoId:   id.String(),
 		VideoName: videoName,
 		Manifest:  fmt.Sprintf("processed/%s/index.m3u8", id.String()),
@@ -99,7 +97,7 @@ func (s *videoService) ProcessVideoWithOptions(ctx context.Context, videoKey str
 	})
 
 	if err != nil {
-		return errors.New("error at video repository save batch: " + err.Error())
+		return errors.New("error at video repository save: " + err.Error())
 	}
 
 	return os.RemoveAll(fmt.Sprintf("%s/%s", os.TempDir(), videoName))
