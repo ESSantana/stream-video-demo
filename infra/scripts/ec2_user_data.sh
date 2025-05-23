@@ -15,9 +15,9 @@ export SERVER_PORT=${SERVER_PORT}
 source /etc/bashrc
 
 docker run -p 80:${SERVER_PORT} -d --name stream-video-demo \
-    -e SERVER_PORT \
-    -e VIDEO_BUCKET \
-    -e CLOUDFRONT_DIST \
-    -e STAGE \
-    emersonsantanadev/stream-video-demo:latest
- 
+  -e SERVER_PORT \
+  -e VIDEO_BUCKET \
+  -e CLOUDFRONT_DIST \
+  -e STAGE \
+  -v /tmp:/tmp:rw
+emersonsantanadev/stream-video-demo:latest

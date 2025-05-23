@@ -11,12 +11,12 @@ type VideoOptions struct {
 }
 
 func DefaultVideoOptions() VideoOptions {
-	return VideoOptions{
+	options := VideoOptions{
 		AudioEncoder:     "aac",
 		VideoEncoder:     "libx264",
 		HLSFileSize:      30,
 		SegmentPrefix:    "segment",
 		ThumbnailRefTime: "00:00:10",
 	}
+	return options
 }
- 
