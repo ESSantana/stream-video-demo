@@ -19,5 +19,5 @@ docker run -p 80:${SERVER_PORT} -d --name stream-video-demo \
   -e VIDEO_BUCKET \
   -e CLOUDFRONT_DIST \
   -e STAGE \
-  -v /tmp:/tmp:rw
-emersonsantanadev/stream-video-demo:latest
+  -v /tmp:/tmp:rw \
+  emersonsantanadev/stream-video-demo:latest
